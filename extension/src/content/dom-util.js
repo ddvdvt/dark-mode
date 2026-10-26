@@ -65,21 +65,23 @@
    * with `transition: all` would otherwise animate every element from light to dark — a visible
    * flicker. Returns the function to call after the change: it flushes styles (the browser creates the
    * transitions our change caused) and cancels exactly those, so they end at once. Nothing is added
-   * to the page and no extra style recalculation is needed. Nestable.
-   * @returns {() => void}
+   * to the page and no extra style recalculation is needed. Nestable. restore(false) skips the flush
+   * (the caller knows the page has no transitions).
+   * @returns {(flush?: boolean) => void}
    */
   function transitionsOff() {
     if (typeof document.getAnimations !== 'function' || typeof CSSTransition === 'undefined') return () => {};
     if (quietDepth++ === 0) quietBefore = new Set(document.getAnimations());
     let done = false;
-    return () => {
+    return (flush = true) => {
       if (done) return;
       done = true;
       if (--quietDepth > 0) return;
       const before = quietBefore;
       quietBefore = null;
       const html = document.documentElement;
-      if (!before || !html) return;
+      // nothing has been rendered before <body> exists: no transition can have started
+      if (!flush || !before || !html || !document.body) return;
       void getComputedStyle(html).color; // style flush: transitions caused by our change are created now
       for (const a of document.getAnimations()) if (a instanceof CSSTransition && !before.has(a)) a.cancel();
     };
@@ -98,13 +100,16 @@
     for (const a of document.getAnimations()) if (a instanceof CSSTransition && !before.has(a)) a.cancel();
   }
 
-  /** Run `fn` with transitions off (see transitionsOff). */
-  function withoutTransitions(fn) {
+  /**
+   * Run `fn` with transitions off (see transitionsOff).
+   * @param {() => any} fn @param {() => boolean} [needed] asked afterwards: may the page have transitions?
+   */
+  function withoutTransitions(fn, needed) {
     const restore = transitionsOff();
     try {
       return fn();
     } finally {
-      restore();
+      restore(!needed || needed());
     }
   }
 

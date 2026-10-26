@@ -136,3 +136,15 @@ test('looksDark on a light canvas needs every point dark (short page with dark h
   assert.equal(P.looksDark({ htmlBg: T, bodyBg: 'rgb(255, 255, 255)', samples: [band, band, band] }), true, 'a dark wrapper covering the viewport');
   assert.equal(P.looksDark({ htmlBg: 'rgb(13, 17, 23)', bodyBg: T, samples: [main, band, band] }), true, 'dark canvas: majority');
 });
+
+test('override classes cover ::before / ::after (fades and badges from unreadable CSS)', () => {
+  const fade = P.elementOverride({ bg: 'rgba(0, 0, 0, 0)', fg: 'rgb(230, 230, 230)', image: 'linear-gradient(to right, rgb(255, 255, 255) 30%, color(srgb 0.94 0.94 0.94 / 0) 100%)' });
+  assert.match(fade.image, /^linear-gradient\(to right, rgb\(\d+, \d+, \d+\) 30%, rgba\(\d+, \d+, \d+, 0\) 100%\)$/, 'color() stops are transformed too');
+  const o = { bg: 'rgb(1, 1, 1)', after: fade };
+  const rules = P.overrideRules('4', o);
+  assert.equal(rules.length, 2);
+  assert.equal(rules[0], '[data-nd-c="4"]{background-color:rgb(1, 1, 1)!important;}');
+  assert.match(rules[1], /^\[data-nd-c="4"\]::after\{background-image:linear-gradient\(/);
+  assert.notEqual(P.overrideKey(o), P.overrideKey({ bg: 'rgb(1, 1, 1)' }));
+  assert.notEqual(P.overrideKey({ before: fade }), P.overrideKey({ after: fade }));
+});

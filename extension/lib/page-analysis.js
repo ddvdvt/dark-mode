@@ -92,7 +92,8 @@
   }
 
   /**
-   * @typedef {{ bg?: string, fg?: string, image?: string, fill?: string, border?: string }} Override
+   * @typedef {{ bg?: string, fg?: string, image?: string, fill?: string, stroke?: string, border?: string, before?: Override, after?: Override }} Override
+   *   before / after: the same for the ::before / ::after pseudo-elements
    */
 
   /**
@@ -142,7 +143,12 @@
 
   /** Stable cache key of an override. @param {Override} o */
   function overrideKey(o) {
-    return (o.bg || '') + '|' + (o.fg || '') + '|' + (o.image || '') + '|' + (o.fill || '') + '|' + (o.border || '') + (o.stroke ? '|' + o.stroke : '');
+    return (
+      (o.bg || '') + '|' + (o.fg || '') + '|' + (o.image || '') + '|' + (o.fill || '') + '|' + (o.border || '') +
+      (o.stroke ? '|' + o.stroke : '') +
+      (o.before ? '|b:' + overrideKey(o.before) : '') +
+      (o.after ? '|a:' + overrideKey(o.after) : '')
+    );
   }
 
   /**
@@ -150,6 +156,19 @@
    * @param {string} id @param {Override} o
    */
   function overrideRule(id, o) {
+    return `[data-nd-c="${id}"]{${overrideBody(o)}}`;
+  }
+
+  /** All rules of an override class: the element, then its ::before / ::after if any. */
+  function overrideRules(id, o) {
+    const out = [overrideRule(id, o)];
+    if (o.before) out.push(`[data-nd-c="${id}"]::before{${overrideBody(o.before)}}`);
+    if (o.after) out.push(`[data-nd-c="${id}"]::after{${overrideBody(o.after)}}`);
+    return out;
+  }
+
+  /** @param {Override} o */
+  function overrideBody(o) {
     let body = '';
     if (o.bg) body += `background-color:${o.bg}!important;`;
     if (o.image) body += `background-image:${o.image}!important;`;
@@ -157,7 +176,7 @@
     if (o.fill) body += `fill:${o.fill}!important;`;
     if (o.stroke) body += `stroke:${o.stroke}!important;`;
     if (o.border) body += `border-color:${o.border}!important;`;
-    return `[data-nd-c="${id}"]{${body}}`;
+    return body;
   }
 
   /**
@@ -197,5 +216,5 @@
     return w >= viewportWidth * 0.3 && h >= 40 && w * h >= 30000;
   }
 
-  NS.page = { effectiveBackground, usedScheme, canvasColor, looksDark, elementOverride, svgOverride, overrideKey, overrideRule, isPhotoBackground, isDarkSection, DARK_LUMINANCE, DARK_CANVAS };
+  NS.page = { effectiveBackground, usedScheme, canvasColor, looksDark, elementOverride, svgOverride, overrideKey, overrideRule, overrideRules, isPhotoBackground, isDarkSection, DARK_LUMINANCE, DARK_CANVAS };
 })(globalThis);

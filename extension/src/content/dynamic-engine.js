@@ -50,6 +50,22 @@
     }
   }
 
+  /**
+   * Override for a ::before / ::after pseudo-element, or null. Its text color is left alone when it
+   * is only inherited from the element (the element's override is inherited then).
+   */
+  function pseudoOverride(el, which, elColor) {
+    const ps = getComputedStyle(el, which);
+    const content = ps.content;
+    if (!content || content === 'none' || content === 'normal') return null;
+    const o = P.elementOverride({ bg: ps.backgroundColor, fg: ps.color, image: ps.backgroundImage, border: borderColor(ps) });
+    if (o && o.fg && ps.color === elColor) {
+      delete o.fg;
+      if (!o.bg && !o.image && !o.border) return null;
+    }
+    return o;
+  }
+
   /** Legacy color attribute value ("#006699", "006699", "red") → color, or null. */
   function legacyColor(v) {
     if (!v) return null;
@@ -749,6 +765,15 @@
             if (!o.bg && !o.image && !o.border) o = null;
           }
           this.seen.set(el, { fg: cs.color, light: !!(o && o.fg) || !!(ps && ps.fg === cs.color && ps.light) || C.isLightFg(C.parseColor(cs.color) || { r: 0, g: 0, b: 0, a: 1 }) });
+          // ::before / ::after styled by unreadable CSS (fades, badges): only a full scan has to look
+          if (this.fullScan && !el.hasAttribute('data-nd-c')) {
+            const before = pseudoOverride(el, '::before', cs.color), after = pseudoOverride(el, '::after', cs.color);
+            if (before || after) {
+              o = o || {};
+              if (before) o.before = before;
+              if (after) o.after = after;
+            }
+          }
         }
         if (o) {
           writes.push([el, o]);
@@ -776,11 +801,12 @@
       let id = this.classes.get(key);
       if (!id) {
         id = String(this.classes.size + 1);
-        const rule = P.overrideRule(id, o);
         try {
           const sheet = this.fallback && this.fallback.sheet;
-          if (sheet) sheet.insertRule(rule, sheet.cssRules.length);
-          if (this.shadowFallback) this.shadowFallback.insertRule(rule, this.shadowFallback.cssRules.length);
+          for (const rule of P.overrideRules(id, o)) {
+            if (sheet) sheet.insertRule(rule, sheet.cssRules.length);
+            if (this.shadowFallback) this.shadowFallback.insertRule(rule, this.shadowFallback.cssRules.length);
+          }
         } catch {
           /* rule rejected: skip this element */
           return false;
@@ -820,6 +846,11 @@
       if (!saved) return;
       this.inline.delete(el);
       for (const [prop, orig, ours] of saved) if (el.style.getPropertyValue(prop) === ours) el.style.setProperty(prop, orig, 'important');
+    }
+
+    /** Transitions anywhere in the page CSS we know of (unreadable CSS or inline styles: assume yes). */
+    mayTransition() {
+      return this.ctx.transitions || this.unreadable.size > 0 || this.ctx.unreadable || this.fullScan;
     }
 
     stats() {

@@ -151,6 +151,7 @@
    * @property {Set<string>} varNonColor custom properties with a definition that is not a plain color
    * @property {number} version   bumped whenever what is known about variables changes
    * @property {WeakMap<object, any>} ruleCache plan node per CSSStyleRule (CSSOM reads are the expensive part)
+   * @property {boolean} transitions a rule declares transitions (theme changes must cancel them)
    * @property {boolean} cacheRules use ruleCache (for sheets that are read again and again: CSS-in-JS)
    * @property {number} rules     style rules visited
    * @property {number} decls     declarations rewritten
@@ -169,6 +170,7 @@
       version: 0,
       ruleCache: new WeakMap(),
       cacheRules: true,
+      transitions: false,
       rules: 0,
       decls: 0,
       maxRules: 100000,
@@ -330,7 +332,11 @@
         continue;
       }
       const role = PROP_ROLE[p];
-      if (!role) continue;
+      if (!role) {
+        // remember that the page animates something: theme changes must then cancel transitions
+        if (p.charCodeAt(0) === 116 && p === 'transition-duration') ctx.transitions = true;
+        continue;
+      }
       let v = st.getPropertyValue(p);
       let synthetic = false;
       if (!v) {

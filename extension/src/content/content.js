@@ -50,10 +50,15 @@
     if (root && root.getAttribute('data-nd') !== v) root.setAttribute('data-nd', v);
   }
 
+  /** May the page animate color changes? (Unknown → yes.) */
+  function mayTransition() {
+    return !engine || !engine.mayTransition || engine.mayTransition();
+  }
+
   function stopEngine() {
     if (!engine) return;
     try {
-      L.dom.withoutTransitions(() => engine.stop());
+      L.dom.withoutTransitions(() => engine.stop(), mayTransition);
     } catch {
       /* ignore */
     }
@@ -69,7 +74,7 @@
       stopEngine();
       evaluate();
     };
-    L.dom.withoutTransitions(() => engine.start(settings));
+    L.dom.withoutTransitions(() => engine.start(settings), mayTransition);
     if (!appliedAt) appliedAt = performance.now();
   }
 
@@ -164,11 +169,14 @@
   function checkDark() {
     try {
       if (!engine || detectedDark || !document.body) return;
-      const m = L.dom.withoutTransitions(() =>
-        engine.suspend(() => {
-          L.dom.settleTransitions(); // read final colors, not the start of a transition
-          return measure();
-        }),
+      const quiet = mayTransition();
+      const m = L.dom.withoutTransitions(
+        () =>
+          engine.suspend(() => {
+            if (quiet) L.dom.settleTransitions(); // read final colors, not the start of a transition
+            return measure();
+          }),
+        () => quiet,
       );
       if (engine.setCanvas) engine.setCanvas(m);
       if (L.page.looksDark(m)) {
