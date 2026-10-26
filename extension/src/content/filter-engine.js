@@ -18,10 +18,12 @@
   const MEDIA = [
     'img:not([src*=".svg"]):not([src^="data:image/svg"])',
     'video', 'canvas', 'embed', 'object', 'svg image', 'input[type="image"]',
-    '[data-nd-img]', '[style*="url("]',
+    '[data-nd-img]',
     ...MEDIA_FRAMES.map((s) => `iframe[src*="${s}"]`),
   ].join(',');
-  const NESTED = ':is([data-nd-img],[style*="url("]) :is(img,video,canvas,svg image,[data-nd-img],[style*="url("])';
+  // :where() keeps the media selector at zero specificity, so media inside a re-inverted block (NESTED,
+  // one attribute more) reliably wins and is not inverted twice.
+  const NESTED = '[data-nd-img] :where(img,video,canvas,svg image,[data-nd-img])';
   const SCAN_LIMIT = 30000;
 
   class FilterEngine {
@@ -33,8 +35,12 @@
       this.observer = null;
       this.canvas = C.parseColor('#fff');
       this.settings = null;
-      /** @type {Element[]} */
+      /** @type {Element[]} subtrees to scan */
       this.queue = [];
+      /** @type {Element[]} single elements whose class / style changed (lazy backgrounds) */
+      this.singles = [];
+      /** @type {WeakMap<Element, number>} luminance of what is painted behind an element's content */
+      this.lum = new WeakMap();
       /** @type {TreeWalker | null} */
       this.walker = null;
       this.scheduled = false;
@@ -49,10 +55,13 @@
       // The root background is filtered too, so it keeps the page's own (light) canvas color.
       // It must be explicit: the browser's default white canvas is not filtered.
       const canvas = C.formatColor(this.canvas);
+      // Screen only: printing uses the page's own colors.
       return (
+        '@media screen{' +
         `html[data-nd="filter"]{filter:${S.filterCss(chain)}!important;background-color:${canvas}!important;background-image:none!important}` +
-        `html[data-nd="filter"] :is(${MEDIA}){filter:${REINVERT}!important}` +
-        `html[data-nd="filter"] ${NESTED}{filter:none!important}`
+        `html[data-nd="filter"] :where(${MEDIA}){filter:${REINVERT}!important}` +
+        `html[data-nd="filter"] ${NESTED}{filter:none!important}` +
+        '}'
       );
     }
 
@@ -66,7 +75,13 @@
       dom.onReady(() => {
         if (!this.style) return;
         this.observer = new MutationObserver((recs) => this.onMutations(recs));
-        this.observer.observe(document.documentElement, { childList: true, subtree: true });
+        // class / style changes too: lazy thumbnails get their background image that way
+        this.observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
+        // inline background photos are known at once: re-invert them before the first paint
+        const marks = [];
+        for (const el of document.querySelectorAll('[style*="url("]')) if (this.check(el, this.lumBehind(el)) === 'img') marks.push(el);
+        for (const el of marks) el.setAttribute('data-nd-img', '');
+        this.marked += marks.length;
         if (document.body) this.enqueue(document.body);
       });
     }
@@ -83,7 +98,7 @@
      * @param {{ htmlBg: string, bodyBg: string }} m
      */
     setCanvas(m) {
-      const c = P.canvasColor(m.htmlBg, m.bodyBg);
+      const c = P.canvasColor(m.htmlBg, m.bodyBg, m.scheme);
       if (C.formatColor(c) === C.formatColor(this.canvas)) return;
       this.canvas = c;
       if (this.settings) this.update(this.settings);
@@ -109,8 +124,12 @@
 
     /** @param {MutationRecord[]} recs */
     onMutations(recs) {
-      for (const r of recs) for (const n of r.addedNodes) if (n.nodeType === 1 && !dom.isOurs(n)) this.queue.push(/** @type {Element} */ (n));
-      if (this.queue.length) this.schedule();
+      for (const r of recs) {
+        if (r.type === 'attributes') {
+          if (!dom.isOurs(r.target)) this.singles.push(/** @type {Element} */ (r.target));
+        } else for (const n of r.addedNodes) if (n.nodeType === 1 && !dom.isOurs(n)) this.queue.push(/** @type {Element} */ (n));
+      }
+      if (this.queue.length || this.singles.length) this.schedule();
       if (this.style && !this.style.isConnected) dom.append(this.style);
     }
 
@@ -127,11 +146,61 @@
     }
 
     /** Idle-time scan for large background photos, chunked by the idle deadline. */
+    /** Luminance painted behind the content of `el`'s parent (walks up until an opaque background). */
+    lumBehind(el) {
+      let lum = C.luminance(this.canvas);
+      for (let p = el.parentElement, d = 0; p && d < 30; p = p.parentElement, d++) {
+        const known = this.lum.get(p);
+        if (known !== undefined) {
+          lum = known;
+          break;
+        }
+        const c = C.parseColor(getComputedStyle(p).backgroundColor);
+        if (c && c.a >= 0.95) {
+          lum = C.luminance(c);
+          break;
+        }
+      }
+      return lum;
+    }
+
+    /**
+     * What an element needs: 'img' = show in its own colors (photo background, dark section), or null.
+     * Also records the luminance behind its content for its children.
+     * @param {Element} el @param {number} parentLum
+     */
+    check(el, parentLum) {
+      const tag = el.tagName;
+      if (tag === 'IMG' || tag === 'VIDEO' || tag === 'SCRIPT' || tag === 'STYLE' || tag === 'svg' || tag === 'CANVAS' || tag === 'IFRAME') return null;
+      const cs = getComputedStyle(el);
+      const bg = cs.backgroundColor;
+      const c = C.parseColor(bg);
+      this.lum.set(el, c && c.a >= 0.95 ? C.luminance(c) : parentLum);
+      const bi = cs.backgroundImage;
+      const rootish = el === document.body || el === document.documentElement;
+      const hasUrl = bi !== 'none' && bi.indexOf('url(') >= 0;
+      if (!hasUrl && (!c || c.a < 0.95 || rootish)) return null;
+      const r = el.getBoundingClientRect();
+      if (hasUrl && P.isPhotoBackground(bi, r.width, r.height, { repeat: cs.backgroundRepeat, size: cs.backgroundSize, viewportHeight: innerHeight, root: rootish })) return 'img';
+      if (!rootish && P.isDarkSection(bg, parentLum, r.width, r.height, innerWidth)) return 'img';
+      return null;
+    }
+
+    /** Idle-time scan for large background photos and dark sections, chunked by the idle deadline. */
     work(deadline) {
       this.scheduled = false;
       if (!this.style) return;
       const marks = [];
+      const unmarks = [];
       let n = 0;
+      // single elements whose class / style changed (lazy backgrounds, toggled themes)
+      while (this.singles.length) {
+        if ((++n & 31) === 0 && deadline.timeRemaining() < 2) break;
+        const el = /** @type {Element} */ (this.singles.shift());
+        if (!el.isConnected) continue;
+        const want = this.check(el, this.lumBehind(el)) === 'img';
+        if (want !== el.hasAttribute('data-nd-img')) (want ? marks : unmarks).push(el);
+      }
       while (this.scanned < SCAN_LIMIT) {
         if ((++n & 31) === 0 && deadline.timeRemaining() < 2) break;
         /** @type {Element | null} */
@@ -150,19 +219,19 @@
           }
         }
         this.scanned++;
-        const tag = el.tagName;
-        if (tag === 'IMG' || tag === 'VIDEO' || tag === 'SCRIPT' || tag === 'STYLE' || tag === 'svg' || el.hasAttribute('data-nd-img')) continue;
-        const bi = getComputedStyle(el).backgroundImage;
-        if (bi === 'none' || bi.indexOf('url(') < 0) continue;
-        const r = el.getBoundingClientRect();
-        if (P.isPhotoBackground(bi, r.width, r.height)) marks.push(el);
+        if (el.hasAttribute('data-nd-img')) continue;
+        const parent = el.parentElement;
+        const pl = parent ? this.lum.get(parent) : undefined;
+        if (this.check(el, pl === undefined ? this.lumBehind(el) : pl) === 'img') marks.push(el);
       }
       for (const el of marks) el.setAttribute('data-nd-img', '');
+      for (const el of unmarks) el.removeAttribute('data-nd-img');
       this.marked += marks.length;
       if (this.scanned >= SCAN_LIMIT) {
         this.queue.length = 0;
         this.walker = null;
-      } else if (this.walker || this.queue.length) this.schedule();
+      }
+      if (this.walker || this.queue.length || this.singles.length) this.schedule();
     }
 
     stats() {
