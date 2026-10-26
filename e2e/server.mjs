@@ -33,7 +33,10 @@ export async function startServers() {
     const url = new URL(req.url || '/', 'http://x');
     const name = url.pathname.replace(/^\/+/, '') || 'basic.html';
     if (name.includes('..')) throw new Error('bad');
-    if (name.startsWith('brand/')) {
+    if (name === 'favicon.ico') {
+      res.writeHead(204);
+      res.end();
+    } else if (name.startsWith('brand/')) {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
       res.end(`<!doctype html><title>brand ${name}</title>`);
     } else if (name.startsWith('x-origin/')) {
