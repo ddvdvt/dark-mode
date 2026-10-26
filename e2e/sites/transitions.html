@@ -7,11 +7,15 @@
 <title>Transitions</title>
 <meta name="nd-test" content='{"expect":"dark"}'>
 <style>
-  body { margin: 0; padding: 20px; background: #fff; color: #222; font: 16px sans-serif; transition: background-color .8s, color .8s; }
+  body { margin: 0; background: #fff; color: #222; font: 16px sans-serif; transition: background-color .8s, color .8s; }
   .card { background: #f4f6f8; border: 1px solid #dfe3e8; padding: 14px; margin: 10px 0; border-radius: 8px; transition: all .6s ease; }
   .btn { background: #0d6efd; color: #fff; border: 0; padding: 8px 14px; border-radius: 6px; transition: background-color .5s, box-shadow .5s; }
   a { color: #0645ad; transition: color 1s; }
   .inline-t { transition: background-color 1s; }
+  /* an app wrapper covering the viewport, animated like the rest (Habr-like): measuring the page with
+     the theme switched off for a moment must not read the start of a transition */
+  .app { min-height: 100vh; background: #f0f0f0; transition: background-color .3s; padding: 1px 0; }
+  .wrap { max-width: 900px; margin: 0 auto; background: #fff; transition: background-color .3s; padding: 0 16px; min-height: 100vh; }
 </style>
 <script>
   // record every color transition that is running when a frame is painted (= a visible animation)
@@ -28,10 +32,12 @@
 </script>
 </head>
 <body>
+<div class="app"><div class="wrap">
 <h1>Smooth UI</h1>
 <div class="card">Card with <code>transition: all .6s</code> and a <a href="#">link</a>.</div>
 <div class="card"><button class="btn">Button</button></div>
 <div class="inline-t" style="background:#fffbe6;color:#444;padding:10px">Inline colors with a transition</div>
+</div></div>
 <script>
   window.__ndCheck = () => window.__transitions.map((t) => 'transition started: ' + t);
 </script>
