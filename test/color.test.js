@@ -31,7 +31,7 @@ test('parses oklch / oklab (Tailwind 4 palettes)', () => {
 });
 
 test('rejects what it does not understand', () => {
-  for (const s of ['', 'currentcolor', 'inherit', 'var(--x)', 'color-mix(in srgb, red, blue)', '#ggg', '#12345', 'rgb(a,b,c)', 'lab(50% 0 0)', 'none', null]) {
+  for (const s of ['', 'currentcolor', 'currentColor', 'inherit', 'var(--x)', 'rgb(var(--x))', 'rgb(from red r g b / 50%)', 'color-mix(in srgb, var(--a), blue)', 'calc(1px)', '#ggg', '#12345', 'rgb(a,b,c)', 'Canvas', 'CanvasText', 'none', 'color(rec2020 1 0 0)', 'url(#a)', null]) {
     assert.equal(parseColor(/** @type {any} */ (s)), null, String(s));
   }
 });
@@ -100,4 +100,79 @@ test('filter chain: invert + hue-rotate turns white into black and keeps hue fam
   assert.deepEqual(applyFilterChain(rgb(255, 255, 255), [['contrast', 0.5]]), rgb(191, 191, 191));
   const sep = applyFilterChain(rgb(128, 128, 128), [['sepia', 1]]);
   assert.ok(sep.r > sep.g && sep.g > sep.b);
+});
+
+const near = (c, r, g, b, a = 1, tol = 2) =>
+  c && Math.abs(c.r - r) <= tol && Math.abs(c.g - g) <= tol && Math.abs(c.b - b) <= tol && Math.abs(c.a - a) < 0.01;
+
+test('parses every CSS color syntax that sites use', () => {
+  assert.ok(near(parseColor('rgb(0 0 0 / .5)'), 0, 0, 0, 0.5));
+  assert.ok(near(parseColor('rgb(255 255 255 / 0.9)'), 255, 255, 255, 0.9));
+  assert.ok(near(parseColor('RGBA(13, 110, 253, 1)'), 13, 110, 253));
+  assert.ok(near(parseColor('rgb(none 128 255)'), 0, 128, 255));
+  assert.ok(near(parseColor('#81_8b98'.replace('_', '')), 0x81, 0x8b, 0x98));
+  assert.ok(near(parseColor('#818b981f'), 0x81, 0x8b, 0x98, 0.122));
+  assert.ok(near(parseColor('#d1d9e0b3'), 0xd1, 0xd9, 0xe0, 0.702));
+  assert.ok(near(parseColor('hsl(210deg 40% 98%)'), 247, 250, 252));
+  assert.ok(near(parseColor('hsl(222.2 84% 4.9%)'), 2, 8, 23));
+  assert.ok(near(parseColor('hsl(120, 100%, 25%, 0.3)'), 0, 128, 0, 0.3));
+  assert.ok(near(parseColor('hwb(0 0% 0%)'), 255, 0, 0));
+  assert.ok(near(parseColor('hwb(120 20% 20%)'), 51, 204, 51));
+  assert.ok(near(parseColor('hwb(0 60% 60%)'), 128, 128, 128));
+  // CIE Lab / LCH (D50), reference values from the CSS Color 4 spec examples
+  assert.ok(near(parseColor('lab(100 0 0)'), 255, 255, 255));
+  assert.ok(near(parseColor('lab(0% 0 0)'), 0, 0, 0));
+  assert.ok(near(parseColor('lab(54.29 80.82 69.88)'), 255, 0, 0, 1, 4), JSON.stringify(parseColor('lab(54.29 80.82 69.88)')));
+  assert.ok(near(parseColor('lch(54.29 106.84 40.85)'), 255, 0, 0, 1, 4));
+  assert.ok(near(parseColor('lch(50% 0 0 / 50%)'), 119, 119, 119, 0.5, 2));
+  // color() spaces
+  assert.ok(near(parseColor('color(srgb 1 0.5 0)'), 255, 128, 0));
+  assert.ok(near(parseColor('color(srgb 100% 50% 0% / 0.25)'), 255, 128, 0, 0.25));
+  assert.ok(near(parseColor('color(srgb-linear 1 1 1)'), 255, 255, 255));
+  assert.ok(near(parseColor('color(display-p3 1 1 1)'), 255, 255, 255));
+  assert.ok(near(parseColor('color(display-p3 0.5 0.5 0.5)'), 128, 128, 128));
+  assert.ok(near(parseColor('color(xyz-d65 0.9505 1 1.089)'), 255, 255, 255));
+  assert.ok(near(parseColor('color(xyz-d50 0.9642 1 0.8249)'), 255, 255, 255));
+});
+
+test('color-mix() and light-dark()', () => {
+  assert.ok(near(parseColor('color-mix(in srgb, red, blue)'), 128, 0, 128, 1, 1));
+  assert.ok(near(parseColor('color-mix(in srgb, white 20%, black)'), 51, 51, 51, 1, 1));
+  assert.ok(near(parseColor('color-mix(in srgb, 25% white, black)'), 64, 64, 64, 1, 1));
+  // Tailwind 4 alpha: color-mix(in oklab, <color> 50%, transparent) keeps the color, halves alpha
+  assert.ok(near(parseColor('color-mix(in oklab, #000 50%, transparent)'), 0, 0, 0, 0.5));
+  assert.ok(near(parseColor('color-mix(in oklab, oklch(100% 0 0) 80%, transparent)'), 255, 255, 255, 0.8));
+  assert.ok(near(parseColor('color-mix(in oklch, #fff, #000)'), 99, 99, 99, 1, 3));
+  assert.ok(near(parseColor('color-mix(in srgb, red 30%, blue 30%)'), 128, 0, 128, 0.6, 1), 'percentages under 100% scale alpha');
+  assert.ok(near(parseColor('light-dark(#fff, #000)'), 255, 255, 255));
+  assert.ok(near(parseColor('light-dark(rgb(1 2 3), hsl(0 0% 0%))'), 1, 2, 3));
+  assert.equal(parseColor('light-dark(#fff)'), null);
+  assert.equal(parseColor('color-mix(in srgb, red)'), null);
+});
+
+test('system colors and currentColor are recognised and never parsed', () => {
+  assert.equal(Lib.color.isSystemColor('Canvas'), true);
+  assert.equal(Lib.color.isSystemColor('canvastext'), true);
+  assert.equal(Lib.color.isSystemColor('LinkText'), true);
+  assert.equal(Lib.color.isSystemColor('white'), false);
+  assert.deepEqual(Lib.color.splitTop('in srgb, rgb(1, 2, 3) 20%, red'), ['in srgb', 'rgb(1, 2, 3) 20%', 'red']);
+});
+
+test('darken matches perceived lightness: saturated colors keep hue and contrast', () => {
+  const text = darken(rgb(0, 0, 0), 'fg');
+  for (const hex of ['#ffc107', '#ffdd2d', '#ffe600', '#0d6efd', '#e30613', '#2aabee', '#21a038', '#ff0000', '#fff3cd', '#d1e7dd', '#00ff00']) {
+    const c = parseColor(hex);
+    const bg = darken(c, 'bg');
+    assert.ok(contrastRatio(text, bg) >= 6.5, `${hex} → ${formatColor(bg)}: default text contrast ${contrastRatio(text, bg).toFixed(2)}`);
+    assert.ok(contrastRatio(rgb(255, 255, 255), bg) >= 4.5, `${hex}: white text on it`);
+    const h0 = rgbToHsl(c).h, h1 = rgbToHsl(bg).h;
+    assert.ok(Math.min(Math.abs(h0 - h1), 360 - Math.abs(h0 - h1)) < 8, `${hex} keeps its hue`);
+    assert.ok(isDarkBg(bg));
+  }
+  const page = darken(rgb(255, 255, 255), 'bg');
+  for (const hex of ['#0969da', '#0000ee', '#cf222e', '#006699', '#8250df', '#1a0dab', '#0645ad']) {
+    const fg = darken(parseColor(hex), 'fg');
+    assert.ok(contrastRatio(fg, page) >= 4.5, `${hex} → ${formatColor(fg)} on the page: ${contrastRatio(fg, page).toFixed(2)}`);
+    assert.ok(isLightFg(fg), `${hex} is recognised as transformed`);
+  }
 });

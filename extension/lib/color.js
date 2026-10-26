@@ -69,23 +69,148 @@
     return v;
   }
 
+  /** Linear-light sRGB (0..1, clipped to the gamut) → RGBA. */
+  function fromLinear(r, g, b, alpha) {
+    const enc = (x) => {
+      const c = clamp(x, 0, 1);
+      return Math.round((c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055) * 255);
+    };
+    return { r: enc(r), g: enc(g), b: enc(b), a: alpha };
+  }
+
+  /** sRGB channel 0..1 → linear light. */
+  const toLin = (v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+
   /** @param {number} l 0..1 @param {number} a @param {number} b @param {number} alpha @returns {RGBA} */
   function fromOklab(l, a, b, alpha) {
     const l_ = l + 0.3963377774 * a + 0.2158037573 * b;
     const m_ = l - 0.1055613458 * a - 0.0638541728 * b;
     const s_ = l - 0.0894841775 * a - 1.291485548 * b;
     const L = l_ ** 3, M = m_ ** 3, S = s_ ** 3;
-    const lin = [
+    return fromLinear(
       4.0767416621 * L - 3.3077115913 * M + 0.2309699292 * S,
       -1.2684380046 * L + 2.6097574011 * M - 0.3413193965 * S,
       -0.0041960863 * L - 0.7034186147 * M + 1.707614701 * S,
-    ];
-    const enc = (x) => {
-      const c = clamp(x, 0, 1);
-      return Math.round((c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055) * 255);
-    };
-    return { r: enc(lin[0]), g: enc(lin[1]), b: enc(lin[2]), a: alpha };
+      alpha,
+    );
   }
+
+  /** RGBA → OKLab [L, a, b] (for color-mix in oklab / oklch). */
+  function toOklab(c) {
+    const r = toLin(c.r / 255), g = toLin(c.g / 255), b = toLin(c.b / 255);
+    const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+    const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+    const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+    return [
+      0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+      1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+      0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+    ];
+  }
+
+  /** CIE XYZ (D65) → RGBA. */
+  function fromXyz65(x, y, z, alpha) {
+    return fromLinear(
+      3.2409699419045226 * x - 1.537383177570094 * y - 0.4986107602930034 * z,
+      -0.9692436362808796 * x + 1.8759675015077202 * y + 0.04155505740717559 * z,
+      0.05563007969699366 * x - 0.20397695888897652 * y + 1.0569715142428786 * z,
+      alpha,
+    );
+  }
+
+  /** CIE XYZ (D50) → RGBA (Bradford adaptation to D65). */
+  function fromXyz50(x, y, z, alpha) {
+    return fromXyz65(
+      0.9554734527042182 * x - 0.023098536874261423 * y + 0.0632593086610217 * z,
+      -0.028369706963208136 * x + 1.0099954580058226 * y + 0.021041398966943008 * z,
+      0.012314001688319899 * x - 0.020507696433477912 * y + 1.3303659366080753 * z,
+      alpha,
+    );
+  }
+
+  /** CIE Lab (D50 white, L 0..100) → RGBA. */
+  function fromLab(L, a, b, alpha) {
+    const e = 216 / 24389, k = 24389 / 27;
+    const fy = (L + 16) / 116, fx = fy + a / 500, fz = fy - b / 200;
+    const xr = fx ** 3 > e ? fx ** 3 : (116 * fx - 16) / k;
+    const yr = L > k * e ? fy ** 3 : L / k;
+    const zr = fz ** 3 > e ? fz ** 3 : (116 * fz - 16) / k;
+    return fromXyz50((xr * 0.3457) / 0.3585, yr, (zr * (1 - 0.3457 - 0.3585)) / 0.3585, alpha);
+  }
+
+  /** color(<space> c1 c2 c3 [/ a]) for the predefined RGB / XYZ spaces. */
+  function fromColorFn(t, alpha) {
+    const space = t[0];
+    const v = t.slice(1, 4).map((x) => num(x, 1));
+    if (space === 'srgb') return fromLinear(toLin(v[0]), toLin(v[1]), toLin(v[2]), alpha);
+    if (space === 'srgb-linear') return fromLinear(v[0], v[1], v[2], alpha);
+    if (space === 'display-p3') {
+      const [r, g, b] = v.map(toLin);
+      return fromXyz65(
+        0.4865709486482162 * r + 0.26566769316909306 * g + 0.1982172852343625 * b,
+        0.2289745640697488 * r + 0.6917385218365064 * g + 0.079286914093745 * b,
+        0.04511338185890264 * g + 1.043944368900976 * b,
+        alpha,
+      );
+    }
+    if (space === 'xyz' || space === 'xyz-d65') return fromXyz65(v[0], v[1], v[2], alpha);
+    if (space === 'xyz-d50') return fromXyz50(v[0], v[1], v[2], alpha);
+    return null; // a98-rgb, prophoto-rgb, rec2020: rare on the web, kept as is
+  }
+
+  /** Split a function body at top-level commas: "in srgb, rgb(1,2,3) 20%, red" → 3 parts. */
+  function splitTop(s) {
+    const out = [];
+    let depth = 0, start = 0;
+    for (let i = 0; i < s.length; i++) {
+      const ch = s.charCodeAt(i);
+      if (ch === 40) depth++;
+      else if (ch === 41) depth--;
+      else if (ch === 44 && depth === 0) {
+        out.push(s.slice(start, i).trim());
+        start = i + 1;
+      }
+    }
+    out.push(s.slice(start).trim());
+    return out;
+  }
+
+  /** color-mix(in <space>, <color> [p%], <color> [p%]) → RGBA, mixed in OKLab or sRGB (premultiplied). */
+  function parseMix(inner) {
+    const parts = splitTop(inner);
+    if (parts.length !== 3 || !parts[0].startsWith('in ')) return null;
+    const item = (str) => {
+      const m = /^(?:([\d.]+)%\s+)?(.*?)(?:\s+([\d.]+)%)?$/.exec(str);
+      const c = m && parseColor(m[2]);
+      return c ? { c, p: m[1] != null ? parseFloat(m[1]) : m[3] != null ? parseFloat(m[3]) : null } : null;
+    };
+    const A = item(parts[1]), B = item(parts[2]);
+    if (!A || !B) return null;
+    let p1 = A.p, p2 = B.p;
+    if (p1 == null && p2 == null) p1 = p2 = 50;
+    else if (p1 == null) p1 = 100 - p2;
+    else if (p2 == null) p2 = 100 - p1;
+    const sum = p1 + p2;
+    if (!(sum > 0)) return null;
+    const a1 = A.c.a * (p1 / sum), a2 = B.c.a * (p2 / sum);
+    const alpha = Math.round((a1 + a2) * Math.min(1, sum / 100) * 1000) / 1000;
+    const tot = a1 + a2;
+    if (tot === 0) return { r: 0, g: 0, b: 0, a: 0 };
+    if (/okl(?:ab|ch)/.test(parts[0])) {
+      const x = toOklab(A.c), y = toOklab(B.c);
+      return fromOklab((x[0] * a1 + y[0] * a2) / tot, (x[1] * a1 + y[1] * a2) / tot, (x[2] * a1 + y[2] * a2) / tot, alpha);
+    }
+    const ch = (k) => Math.round((A.c[k] * a1 + B.c[k] * a2) / tot);
+    return { r: ch('r'), g: ch('g'), b: ch('b'), a: alpha };
+  }
+
+  /** CSS system colors follow the used color-scheme by themselves: they are never rewritten. */
+  const SYSTEM_COLORS = new Set(
+    'canvas canvastext linktext visitedtext activetext buttonface buttontext buttonborder field fieldtext highlight highlighttext selecteditem selecteditemtext mark marktext graytext accentcolor accentcolortext'.split(' '),
+  );
+
+  /** @param {string} s */
+  const isSystemColor = (s) => SYSTEM_COLORS.has(String(s).trim().toLowerCase());
 
   /** Split "a b c / d" or "a, b, c, d" into tokens. */
   function args(inner) {
@@ -93,8 +218,10 @@
   }
 
   /**
-   * Parse a CSS color. Supports hex, rgb[a](), hsl[a](), oklch(), oklab(), named colors and transparent.
-   * Returns null for anything else (currentcolor, color-mix, lab, system colors…) — callers keep those as is.
+   * Parse a CSS color: hex (3/4/6/8 digits), rgb[a](), hsl[a](), hwb(), lab(), lch(), oklab(), oklch(),
+   * color(srgb | srgb-linear | display-p3 | xyz…), color-mix(), light-dark() (its light value), named
+   * colors and transparent. Returns null for what cannot be resolved without the page (currentcolor,
+   * system colors, var(), calc(), relative colors "from …") — callers keep those as is.
    * @param {string} input
    * @returns {RGBA | null}
    */
@@ -106,10 +233,21 @@
     if (s === 'transparent') return { r: 0, g: 0, b: 0, a: 0 };
     const named = NAMED.get(s);
     if (named) return parseHex(named);
-    const m = /^([a-z]+)\(([^()]*)\)$/.exec(s);
-    if (!m) return null;
-    const fn = m[1];
-    const t = args(m[2]);
+    const open = s.indexOf('(');
+    if (open <= 0 || s.charCodeAt(s.length - 1) !== 41 || !/^[a-z-]+$/.test(s.slice(0, open))) return null;
+    const fn = s.slice(0, open);
+    const inner = s.slice(open + 1, -1);
+    if (fn === 'color-mix') return parseMix(inner);
+    if (fn === 'light-dark') {
+      const p = splitTop(inner);
+      return p.length === 2 ? parseColor(p[0]) : null;
+    }
+    if (inner.indexOf('(') >= 0 || /\bfrom\b/.test(inner)) return null; // var(), calc(), relative color syntax
+    const t = args(inner);
+    if (fn === 'color') {
+      if (t.length < 4 || t.length > 5 || t.slice(1).some((x) => x !== 'none' && Number.isNaN(parseFloat(x)))) return null;
+      return fromColorFn(t, t.length === 5 ? clamp(num(t[4], 1), 0, 1) : 1);
+    }
     if (t.length < 3 || t.length > 4) return null;
     const alpha = t.length === 4 ? clamp(num(t[3], 1), 0, 1) : 1;
     if (t.some((x) => x !== 'none' && Number.isNaN(parseFloat(x)))) return null;
@@ -129,6 +267,23 @@
       return fromOklab(L, C * Math.cos(H), C * Math.sin(H), alpha);
     }
     if (fn === 'oklab') return fromOklab(clamp(num(t[0], 1), 0, 1), num(t[1], 0.4), num(t[2], 0.4), alpha);
+    if (fn === 'lab') return fromLab(clamp(num(t[0], 100), 0, 100), num(t[1], 125), num(t[2], 125), alpha);
+    if (fn === 'lch') {
+      const C = Math.max(0, num(t[1], 150));
+      const H = (hue(t[2]) * Math.PI) / 180;
+      return fromLab(clamp(num(t[0], 100), 0, 100), C * Math.cos(H), C * Math.sin(H), alpha);
+    }
+    if (fn === 'hwb') {
+      const w = clamp(num(t[1], 100) / 100, 0, 1);
+      const bl = clamp(num(t[2], 100) / 100, 0, 1);
+      if (w + bl >= 1) {
+        const v = Math.round((w / (w + bl)) * 255);
+        return { r: v, g: v, b: v, a: alpha };
+      }
+      const pure = hslToRgb({ h: hue(t[0]), s: 1, l: 0.5 });
+      const f = (v) => Math.round(((v / 255) * (1 - w - bl) + w) * 255);
+      return { r: f(pure.r), g: f(pure.g), b: f(pure.b), a: alpha };
+    }
     return null;
   }
 
@@ -221,10 +376,29 @@
     // Faint overlays of unknown purpose (e.g. rgba(0,0,0,.05) hover tints) are left alone.
     if (role === 'generic' && c.a < 0.3) return c;
     const hsl = rgbToHsl(c);
-    const l = mapLightness(hsl.l, role);
+    let l = mapLightness(hsl.l, role);
     // Very saturated light backgrounds would turn into muddy dark colors: tone saturation down a bit.
     const s = role === 'bg' && hsl.l > 0.5 ? hsl.s * 0.85 : hsl.s;
-    return { ...hslToRgb({ h: hsl.h, s, l }), a: c.a };
+    let out = hslToRgb({ h: hsl.h, s, l });
+    // HSL lightness is not perceived lightness: a yellow at l = 0.3 is as bright as a gray at 0.5, a
+    // blue at l = 0.63 as dark as a gray at 0.4. A saturated background must not end up brighter, and
+    // saturated text not darker, than the gray of the same target lightness, or contrast is lost
+    // (yellow buttons with light text, blue links on a dark page). Hue and saturation are kept.
+    if (s > 0.05 && (role === 'bg' || role === 'fg')) {
+      const v = Math.round(l * 255);
+      const target = luminance({ r: v, g: v, b: v });
+      const cur = luminance(out);
+      if (role === 'bg' ? cur > target : cur < target) {
+        let lo = role === 'bg' ? 0 : l, hi = role === 'bg' ? l : 0.92;
+        for (let i = 0; i < 12; i++) {
+          const mid = (lo + hi) / 2;
+          if (luminance(hslToRgb({ h: hsl.h, s, l: mid })) > target) hi = mid;
+          else lo = mid;
+        }
+        out = hslToRgb({ h: hsl.h, s, l: role === 'bg' ? lo : hi });
+      }
+    }
+    return { ...out, a: c.a };
   }
 
   /** Background is dark enough to be left alone (original dark or already transformed). */
@@ -289,6 +463,9 @@
 
   NS.color = {
     NAMED,
+    SYSTEM_COLORS,
+    isSystemColor,
+    splitTop,
     parseColor,
     formatColor,
     rgbToHsl,
