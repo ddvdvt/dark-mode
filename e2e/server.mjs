@@ -4,10 +4,12 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { PHOTO } from './png.mjs';
+import { PHOTO, MOUNTAINS, LAKE } from './png.mjs';
 import { heavyPage } from './heavy.mjs';
 
 const FIX = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
+const STORE_FIX = join(dirname(fileURLToPath(import.meta.url)), '..', 'store', 'fixtures');
+const IMAGES = { 'photo.png': PHOTO, 'img/mountains.png': MOUNTAINS, 'img/lake.png': LAKE };
 
 function listen(handler) {
   const s = createServer((req, res) => handler(req, res).catch(() => {
@@ -42,9 +44,15 @@ export async function startServers() {
     } else if (name.startsWith('x-origin/')) {
       res.writeHead(302, { location: `http://localhost:${otherPort}/${name.slice(9)}` });
       res.end();
-    } else if (name === 'photo.png') {
+    } else if (IMAGES[name]) {
       res.writeHead(200, { 'content-type': 'image/png' });
-      res.end(PHOTO);
+      res.end(IMAGES[name]);
+    } else if (name === 'altai-10-days') {
+      res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+      res.end(await readFile(join(STORE_FIX, 'article.html')));
+    } else if (name.startsWith('store/')) {
+      res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+      res.end(await readFile(join(STORE_FIX, name.slice(6))));
     } else if (name === 'heavy.html') {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
       res.end(heavyPage(Number(url.searchParams.get('n') || 5000), Number(url.searchParams.get('rules') || 3000), url.searchParams.has('xo')));

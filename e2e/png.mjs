@@ -36,3 +36,23 @@ export function png(w, h, pixel) {
 
 /** Sunset-like photo: orange sky over a green field — strong, recognisable colors. */
 export const PHOTO = png(240, 120, (x, y) => (y < 70 ? [240, 140 + Math.round(y), 40] : [40, 150 + Math.round((x / 240) * 60), 60]));
+
+/** Mountains at sunset: gradient sky, sun, two mountain ridges, a river. */
+export const MOUNTAINS = png(900, 340, (x, y) => {
+  const t = y / 340;
+  const ridge1 = 170 + 60 * Math.sin(x / 90) + 30 * Math.sin(x / 37);
+  const ridge2 = 220 + 40 * Math.sin(x / 140 + 1) + 18 * Math.sin(x / 23);
+  if ((x - 640) ** 2 + (y - 150) ** 2 < 42 ** 2 && y < ridge1) return [255, 214, 120];
+  if (y > 285) return [70 + Math.round(40 * Math.sin(x / 15 + y)), 110, 160];
+  if (y > ridge2) return [38, 70, 52];
+  if (y > ridge1) return [92, 84, 120];
+  return [Math.round(250 - 40 * t), Math.round(150 + 40 * t), Math.round(110 + 80 * t)];
+});
+
+/** A lake at dawn. */
+export const LAKE = png(300, 120, (x, y) => {
+  const hill = 55 + 12 * Math.sin(x / 30);
+  if (y > 70) return [60, 120 + Math.round(y / 3), 170];
+  if (y > hill) return [45, 95, 60];
+  return [255 - Math.round(y), 200 - Math.round(y / 2), 170 + Math.round(y / 2)];
+});
