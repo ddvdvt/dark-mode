@@ -32,6 +32,11 @@
           <option value="filter" data-i18n="engineFilter">Быстрый</option>
         </select>
       </label>
+      <div id="access" class="hidden">
+        <p class="muted" data-i18n="noSiteAccess">У расширения нет доступа к сайтам.</p>
+        <button id="grantAccess" class="btn primary small" type="button" data-i18n="grantAccess">Разрешить доступ к сайтам</button>
+        <p id="accessMsg" class="muted" role="status"></p>
+      </div>
       <div id="restricted" class="hidden">
         <p class="muted" data-i18n="restricted">Здесь браузер не даёт расширениям менять страницу (служебные страницы, магазин расширений). Если это обычный сайт, открытый до установки, перезагрузите его.</p>
         <button id="reload" class="btn small" type="button" data-i18n="reload">Перезагрузить страницу</button>

@@ -35,6 +35,13 @@ const M = {
     'Браузер бұл бетті өзгертуге рұқсат бермейді (қызметтік беттер, кеңейтімдер дүкені). Егер бұл орнатудан бұрын ашылған кәдімгі сайт болса, оны қайта жүктеңіз.',
   ],
   reload: ['Перезагрузить страницу', 'Reload the page', 'Бетті қайта жүктеу'],
+  noSiteAccess: [
+    'У расширения нет доступа к сайтам — в Firefox его можно выдать или отозвать. Без доступа тёмная тема не применяется.',
+    'The extension has no access to websites (in Firefox this access can be granted or revoked). Without it the dark theme cannot be applied.',
+    'Кеңейтімнің сайттарға рұқсаты жоқ (Firefox-та оны беруге не қайтарып алуға болады). Рұқсатсыз қараңғы тақырып қолданылмайды.',
+  ],
+  grantAccess: ['Разрешить доступ к сайтам', 'Allow access to websites', 'Сайттарға рұқсат беру'],
+  accessDenied: ['Доступ не выдан.', 'Access was not granted.', 'Рұқсат берілмеді.'],
   siteTurnOff: ['Выключить на этом сайте', 'Turn off for this site', 'Бұл сайтта өшіру'],
   siteTurnOn: ['Включить на этом сайте', 'Turn on for this site', 'Бұл сайтта қосу'],
   siteForceOn: ['Всё равно затемнить', 'Darken anyway', 'Бәрібір қараңғылау'],

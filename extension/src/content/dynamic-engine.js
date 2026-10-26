@@ -37,14 +37,17 @@
     return '';
   }
 
-  // Closed shadow roots are reachable for content scripts through chrome.dom (no permission needed).
+  // Closed shadow roots are reachable for content scripts (no permission needed): Chrome has
+  // chrome.dom.openOrClosedShadowRoot(el), Firefox the content-script-only property el.openOrClosedShadowRoot.
   const domApi = typeof chrome !== 'undefined' && chrome.dom && typeof chrome.dom.openOrClosedShadowRoot === 'function' ? chrome.dom : null;
+  const ffShadow = !domApi && typeof Element !== 'undefined' && 'openOrClosedShadowRoot' in Element.prototype;
   /** @param {Element} el @returns {ShadowRoot | null} */
   function shadowOf(el) {
     if (el.shadowRoot) return el.shadowRoot;
-    if (!domApi || el.localName.indexOf('-') < 0) return null;
+    if ((!domApi && !ffShadow) || el.localName.indexOf('-') < 0) return null;
     try {
-      return /** @type {ShadowRoot | null} */ (domApi.openOrClosedShadowRoot(/** @type {HTMLElement} */ (el)) || null);
+      const sr = domApi ? domApi.openOrClosedShadowRoot(/** @type {HTMLElement} */ (el)) : /** @type {any} */ (el).openOrClosedShadowRoot;
+      return /** @type {ShadowRoot | null} */ (sr || null);
     } catch {
       return null;
     }

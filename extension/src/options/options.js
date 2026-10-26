@@ -160,7 +160,12 @@ async function init() {
       save((s) => ({ ...s, schedule: { ...s.schedule, [id]: $(id).value } }));
     });
   }
-  $('editShortcuts').addEventListener('click', () => chrome.tabs.create({ url: 'chrome://extensions/shortcuts' }));
+  $('editShortcuts').addEventListener('click', () => {
+    // Firefox: about:addons → Manage Extension Shortcuts (extensions cannot open about: pages directly)
+    const commands = /** @type {any} */ (chrome.commands);
+    if (typeof commands.openShortcutSettings === 'function') commands.openShortcutSettings();
+    else chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+  });
 
   $('addForm').addEventListener('submit', (e) => {
     e.preventDefault();

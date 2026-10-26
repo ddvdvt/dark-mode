@@ -62,6 +62,15 @@
   "reload": {
     "message": "Reload the page"
   },
+  "noSiteAccess": {
+    "message": "The extension has no access to websites (in Firefox this access can be granted or revoked). Without it the dark theme cannot be applied."
+  },
+  "grantAccess": {
+    "message": "Allow access to websites"
+  },
+  "accessDenied": {
+    "message": "Access was not granted."
+  },
   "siteTurnOff": {
     "message": "Turn off for this site"
   },

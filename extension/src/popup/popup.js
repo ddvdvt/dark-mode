@@ -14,6 +14,12 @@ let settings = null;
 let tabId = null;
 /** @type {any} last status from the page */
 let status = null;
+/**
+ * Access to websites. Chrome grants the content-script hosts at install; in Firefox (MV3) the user
+ * can withhold or revoke them, and then no content script runs anywhere.
+ */
+const ALL_SITES = { origins: ['<all_urls>'] };
+let siteAccess = true;
 
 async function activeTabId() {
   const fromUrl = Number(new URLSearchParams(location.search).get('tabId'));
@@ -70,10 +76,12 @@ function render() {
     $('status').classList.add('hidden');
     $('siteActions').classList.add('hidden');
     $('engineRow').classList.add('hidden');
-    $('restricted').classList.remove('hidden');
+    $('restricted').classList.toggle('hidden', !siteAccess);
+    $('access').classList.toggle('hidden', siteAccess);
     return;
   }
   $('restricted').classList.add('hidden');
+  $('access').classList.add('hidden');
   $('status').classList.remove('hidden');
   $('host').textContent = status.host === 'file' ? t('localFile') : status.host || '—';
   const st = status.state;
@@ -113,6 +121,7 @@ function render() {
 }
 
 async function refreshStatus() {
+  siteAccess = await chrome.permissions.contains(ALL_SITES).catch(() => true);
   status = await queryStatus();
   render();
   document.body.dataset.ready = '1';
@@ -161,6 +170,16 @@ async function init() {
   $('resetAdjust').addEventListener('click', async () => {
     settings = await updateSettings((s) => ({ ...s, brightness: 100, contrast: 100, sepia: 0 }));
     render();
+  });
+  $('grantAccess').addEventListener('click', async () => {
+    // called straight from the click: permissions.request needs the user gesture
+    const granted = await chrome.permissions.request(ALL_SITES).catch(() => false);
+    if (!granted) {
+      $('accessMsg').textContent = t('accessDenied');
+      return;
+    }
+    siteAccess = true;
+    if (tabId != null) chrome.tabs.reload(tabId).then(() => window.close(), () => {});
   });
   $('reload').addEventListener('click', () => {
     if (tabId != null) chrome.tabs.reload(tabId).then(() => window.close(), () => {});
