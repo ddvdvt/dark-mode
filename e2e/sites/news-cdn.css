@@ -1,2 +1,8 @@
 /* Served from the second origin without CORS: the page cannot read these rules. */
 .cdn-note { background: #eef6ff; color: #12355b; padding: 6px 8px; border: 1px solid #c9def5; font-family: Arial, sans-serif; font-size: 14px; }
+/* scrollable tab strip with fade-out edges drawn by pseudo-elements (Habr-like) */
+.cdn-tabs { position: relative; display: flex; gap: 18px; padding: 10px 24px; background: #fff; border-bottom: 1px solid #e6e6e6; font: 600 13px Arial, sans-serif; text-transform: uppercase; }
+.cdn-tabs a { color: #548eaa; text-decoration: none; }
+.cdn-tabs::before, .cdn-tabs::after { content: ""; position: absolute; top: 0; bottom: 0; width: 60px; }
+.cdn-tabs::before { left: 0; background: linear-gradient(to right, #fff 30%, rgba(240, 240, 240, 0) 100%); }
+.cdn-tabs::after { right: 0; background-image: linear-gradient(to left, #fff 30%, rgba(240, 240, 240, 0)); }

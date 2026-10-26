@@ -185,6 +185,11 @@ async function runFixture(fx, mode) {
       if (mean > limit) problems.push(`${m.kind} ${m.key} changed: mean pixel difference ${Math.round(mean)} > ${limit}`);
     }
 
+    if (fx.meta.expect !== 'already-dark') {
+      const offPs = new Map(off.pseudos.map((p) => [p.key, p.lum]));
+      const lightPs = on.pseudos.filter((p) => p.lum > 0.4 && (offPs.get(p.key) ?? 1) > 0.4);
+      if (lightPs.length) problems.push(`${lightPs.length} light pseudo-element backgrounds, e.g. ${lightPs.slice(0, 3).map((p) => `${p.key} (${p.lum})`).join('; ')}`);
+    }
     for (const t of on.textures) if (t.filter !== 'none') problems.push(`texture ${t.key} shown in original colors (filter ${t.filter}): the content on it is light`);
 
     // layout

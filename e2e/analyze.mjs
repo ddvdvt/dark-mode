@@ -138,9 +138,15 @@ export function analyze(opts = {}) {
   function gradientAverage(img) {
     const colors = [...img.matchAll(/(?:rgba?|oklch|oklab|lab|lch|color)\([^()]*\)|#[0-9a-f]{3,8}\b/gi)].map((m) => rgba(m[0]));
     if (!colors.length) return null;
-    const s = [0, 0, 0, 0];
-    for (const c of colors) for (let i = 0; i < 4; i++) s[i] += c[i] / colors.length;
-    return s;
+    // colors weighted by alpha (a transparent stop has no color), alpha averaged
+    let r = 0, g = 0, b = 0, w = 0;
+    for (const c of colors) {
+      r += c[0] * c[3];
+      g += c[1] * c[3];
+      b += c[2] * c[3];
+      w += c[3];
+    }
+    return w ? [r / w, g / w, b / w, w / colors.length] : [0, 0, 0, 0];
   }
 
   /**
@@ -150,7 +156,7 @@ export function analyze(opts = {}) {
   function backdrop(x, y, start, rootNode) {
     const els = (rootNode && rootNode.elementsFromPoint ? rootNode : document).elementsFromPoint(x, y);
     let i = start ? els.indexOf(start) : 0;
-    if (i < 0) i = 0;
+    if (i < 0) return { color: null, image: false, covered: true }; // hidden under another element
     const layers = [];
     let image = false;
     for (let j = i; j < els.length; j++) {
@@ -345,11 +351,33 @@ export function analyze(opts = {}) {
       if (cs.content && cs.content !== 'none' && !el.closest('[data-nd-live]')) styles[keyOf(el) + pseudo] = PROPS.map((p) => cs.getPropertyValue(p)).join('|');
     }
   }
+  // ::before / ::after with a background of their own (fades, badges, decorations)
+  const pseudos = [];
+  for (const el of elements.slice(0, 3000)) {
+    if (skipped(el)) continue;
+    for (const ps of ['::before', '::after']) {
+      const cs = getComputedStyle(el, ps);
+      if (!cs.content || cs.content === 'none' || cs.content === 'normal' || cs.display === 'none') continue;
+      const w = parseFloat(cs.width), h = parseFloat(cs.height);
+      if (!(w * h >= 300)) continue;
+      const r = el.getBoundingClientRect();
+      if (!visibleRect(r)) continue;
+      let c = rgba(cs.backgroundColor);
+      if (cs.backgroundImage !== 'none' && !urlBg(cs)) {
+        const g = gradientAverage(cs.backgroundImage);
+        if (g && g[3] > c[3]) c = g;
+      }
+      if (c[3] < 0.5) continue;
+      pseudos.push({ key: keyOf(el) + ps, lum: Math.round(lum(paint(el, c)) * 100) / 100 });
+    }
+  }
+
   // repeating background textures behind content: the fast engine must invert them with the page
   const textures = elements.filter((e) => e.hasAttribute('data-nd-texture')).map((e) => ({ key: keyOf(e), filter: getComputedStyle(e).filter }));
   return {
     nd: document.documentElement.getAttribute('data-nd'),
     textures,
+    pseudos,
     canvas: paintedCanvas.map(Math.round),
     texts,
     icons,
