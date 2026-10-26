@@ -26,33 +26,69 @@
     return out;
   }
 
+  /** Canvas of a page in the dark color scheme (Chrome's dark Canvas system color). */
+  const DARK_CANVAS = { r: 18, g: 18, b: 18, a: 1 };
+
   /**
-   * Canvas color as the browser paints it: <html> background, else <body> background, else white.
-   * @param {string} htmlBg @param {string} bodyBg
+   * Which color scheme the browser uses for the page's canvas and default text: the computed
+   * color-scheme of <html>, else <meta name="color-scheme">; "light dark" follows the system.
+   * @param {string} computed getComputedStyle(html).colorScheme @param {string} meta @param {boolean} systemDark
+   * @returns {'light' | 'dark'}
    */
-  function canvasColor(htmlBg, bodyBg) {
+  function usedScheme(computed, meta, systemDark) {
+    const src = computed && computed !== 'normal' ? computed : meta || '';
+    const list = src.toLowerCase().split(/[\s,]+/);
+    const dark = list.includes('dark'), light = list.includes('light');
+    return dark && (!light || systemDark) ? 'dark' : 'light';
+  }
+
+  /**
+   * Canvas color as the browser paints it: <html> background, else <body> background, else the
+   * Canvas color of the used scheme (white, or dark for <meta name="color-scheme" content="dark">).
+   * @param {string} htmlBg @param {string} bodyBg @param {'light' | 'dark'} [scheme]
+   */
+  function canvasColor(htmlBg, bodyBg, scheme) {
+    const base = scheme === 'dark' ? DARK_CANVAS : WHITE;
     const h = C.parseColor(htmlBg);
-    if (h && h.a > 0) return C.blend(h, WHITE);
+    if (h && h.a > 0) return C.blend(h, base);
     const b = C.parseColor(bodyBg);
-    if (b && b.a > 0) return C.blend(b, WHITE);
-    return WHITE;
+    if (b && b.a > 0) return C.blend(b, base);
+    return base;
   }
 
   /** Relative luminance below which a background counts as dark (≈ #5a5a5a). */
   const DARK_LUMINANCE = 0.1;
 
-  /**
-   * Is the page already dark? Looks at the canvas and at what is visible in the middle of the
-   * viewport (app shells often paint their dark background on a wrapper, not on <body>).
-   * @param {{ htmlBg: string, bodyBg: string, center: string[] | null, text?: string }} m
-   */
-  function looksDark(m) {
-    const canvas = canvasColor(m.htmlBg, m.bodyBg);
-    const bg = m.center && m.center.length ? effectiveBackground(m.center, C.formatColor(canvas)) : canvas;
+  /** One sample: dark background under readable (light) text. */
+  function darkAt(bg, text) {
     if (C.luminance(bg) >= DARK_LUMINANCE) return false;
-    const fg = m.text ? C.parseColor(m.text) : null;
+    const fg = text ? C.parseColor(text) : null;
     // dark background with dark text is a light theme that has not painted yet — don't trust it
     return !fg || fg.a === 0 || C.contrastRatio(C.blend(fg, bg), bg) >= 3 || C.luminance(fg) > 0.2;
+  }
+
+  /**
+   * @typedef {{ chain: string[], text?: string, media?: boolean }} Sample
+   *   chain: computed background colors from the element at a point up to <body>, innermost first;
+   *   media: the point shows a photo / video / canvas — it says nothing about the theme
+   */
+
+  /**
+   * Is the page already dark? Looks at the canvas and at several points of the viewport (app shells
+   * often paint their dark background on a wrapper, not on <body>). Points on media are ignored, so a
+   * light page with a big black video player in the middle is not mistaken for a dark site. On a dark
+   * canvas a majority of the points must be dark; on a light canvas all of them (a dark app shell
+   * covers the whole viewport, while a light site with dark header, band and footer does not).
+   * @param {{ htmlBg: string, bodyBg: string, scheme?: 'light' | 'dark', samples?: Sample[], center?: string[] | null, text?: string }} m
+   */
+  function looksDark(m) {
+    const canvas = canvasColor(m.htmlBg, m.bodyBg, m.scheme);
+    const samples = (m.samples || (m.center ? [{ chain: m.center, text: m.text }] : [])).filter((s) => !s.media);
+    if (!samples.length) return darkAt(canvas, m.text);
+    const cf = C.formatColor(canvas);
+    let dark = 0;
+    for (const s of samples) if (darkAt(s.chain.length ? effectiveBackground(s.chain, cf) : canvas, s.text || m.text)) dark++;
+    return C.luminance(canvas) < DARK_LUMINANCE ? dark * 2 > samples.length : dark === samples.length;
   }
 
   /**
@@ -84,18 +120,29 @@
   }
 
   /**
-   * Shapes inside inline SVG (icons): dark fills become light, like text.
-   * @param {string} fill computed fill @returns {Override | null}
+   * Shapes inside inline SVG: dark fills and strokes become light, like text (icons, formulas, labels).
+   * A light shape that covers most of its <svg> is the backdrop of a chart or diagram: it becomes dark,
+   * like a background, so the labels drawn on it stay readable.
+   * @param {string} fill computed fill @param {string} [stroke] computed stroke
+   * @param {number} [coverage] share of the owner <svg> box covered by the shape, 0..1
+   * @returns {Override | null}
    */
-  function svgOverride(fill) {
-    const c = C.parseColor(fill);
-    if (!c || c.a === 0 || C.isLightFg(c)) return null;
-    return { fill: C.formatColor(C.darken(c, 'fg')) };
+  function svgOverride(fill, stroke, coverage = 0) {
+    /** @type {Override} */
+    const o = {};
+    const f = C.parseColor(fill);
+    if (f && f.a > 0) {
+      if (!C.isLightFg(f)) o.fill = C.formatColor(C.darken(f, 'fg'));
+      else if (coverage >= 0.5 && !C.isDarkBg(f)) o.fill = C.formatColor(C.darken(f, 'bg'));
+    }
+    const s = stroke ? C.parseColor(stroke) : null;
+    if (s && s.a > 0 && !C.isLightFg(s)) o.stroke = C.formatColor(C.darken(s, 'fg'));
+    return o.fill || o.stroke ? o : null;
   }
 
   /** Stable cache key of an override. @param {Override} o */
   function overrideKey(o) {
-    return (o.bg || '') + '|' + (o.fg || '') + '|' + (o.image || '') + '|' + (o.fill || '') + '|' + (o.border || '');
+    return (o.bg || '') + '|' + (o.fg || '') + '|' + (o.image || '') + '|' + (o.fill || '') + '|' + (o.border || '') + (o.stroke ? '|' + o.stroke : '');
   }
 
   /**
@@ -108,6 +155,7 @@
     if (o.image) body += `background-image:${o.image}!important;`;
     if (o.fg) body += `color:${o.fg}!important;`;
     if (o.fill) body += `fill:${o.fill}!important;`;
+    if (o.stroke) body += `stroke:${o.stroke}!important;`;
     if (o.border) body += `border-color:${o.border}!important;`;
     return `[data-nd-c="${id}"]{${body}}`;
   }
@@ -115,14 +163,39 @@
   /**
    * Filter engine: should an element with a CSS background image be shown in original colors?
    * Large boxes are photos / banners; small ones are usually icons and sprites, which look right inverted.
+   * Not photos either: a small tile repeated as a texture behind content, and page-sized wrappers
+   * (<body>, a site container taller than the screen) — re-inverting those would turn the whole page
+   * light again.
    * @param {string} image computed background-image
    * @param {number} w @param {number} h rendered size in CSS px
+   * @param {{ repeat?: string, size?: string, viewportHeight?: number, root?: boolean }} [o]
+   *   repeat / size: computed background-repeat / background-size
    */
-  function isPhotoBackground(image, w, h) {
+  function isPhotoBackground(image, w, h, o = {}) {
     if (!image || image === 'none' || image.indexOf('url(') < 0) return false;
     if (/url\(["']?data:image\/svg|\.svg(?:[?#"')]|$)/i.test(image)) return false;
+    if (o.root) return false;
+    if (o.viewportHeight && h > o.viewportHeight * 1.5) return false;
+    if (o.repeat && o.repeat.indexOf('no-repeat') < 0 && o.repeat.indexOf('round') < 0 && o.size) {
+      // a tile repeated in both directions with an explicit small size is a texture
+      const px = o.size.match(/[\d.]+px/g);
+      if (px && px.length && px.every((v) => parseFloat(v) <= 96)) return false;
+    }
     return w >= 64 && h >= 48 && w * h >= 8000;
   }
 
-  NS.page = { effectiveBackground, canvasColor, looksDark, elementOverride, svgOverride, overrideKey, overrideRule, isPhotoBackground, DARK_LUMINANCE };
+  /**
+   * Filter engine: a large section painted dark by the page itself (a dark header, footer or band on a
+   * light page) would turn light under the inverting filter. It is shown in its own colors instead.
+   * @param {string} bg computed background-color @param {number} parentLum luminance behind it (0..1)
+   * @param {number} w @param {number} h @param {number} viewportWidth
+   */
+  function isDarkSection(bg, parentLum, w, h, viewportWidth) {
+    const c = C.parseColor(bg);
+    if (!c || c.a < 0.95) return false;
+    if (C.luminance(c) >= 0.05 || parentLum < 0.3) return false;
+    return w >= viewportWidth * 0.3 && h >= 40 && w * h >= 30000;
+  }
+
+  NS.page = { effectiveBackground, usedScheme, canvasColor, looksDark, elementOverride, svgOverride, overrideKey, overrideRule, isPhotoBackground, isDarkSection, DARK_LUMINANCE, DARK_CANVAS };
 })(globalThis);

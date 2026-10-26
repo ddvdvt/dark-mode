@@ -56,5 +56,46 @@
     else window.addEventListener('load', fn, { once: true });
   }
 
-  NS.dom = { MARK, makeStyle, isOurs, prepend, append, idle, onReady, onLoad };
+  let noTransitionDepth = 0;
+  /** @type {HTMLStyleElement | null} */
+  let noTransitionEl = null;
+
+  /**
+   * Switch CSS transitions off while we change colors (applying, removing or measuring the theme):
+   * pages with `transition: all` would otherwise animate every element from light to dark — a
+   * visible flicker. Returns the function that switches them back on; before doing so it flushes the
+   * style change, so the restored transitions never see a color change. Nestable.
+   * @returns {() => void}
+   */
+  function transitionsOff() {
+    const html = document.documentElement;
+    if (!html) return () => {};
+    if (noTransitionDepth++ === 0) {
+      noTransitionEl = makeStyle('nt', '*,*::before,*::after{transition:none!important}');
+      html.appendChild(noTransitionEl);
+    }
+    let done = false;
+    return () => {
+      if (done) return;
+      done = true;
+      if (--noTransitionDepth > 0) return;
+      const el = noTransitionEl;
+      noTransitionEl = null;
+      if (!el) return;
+      void (document.documentElement && document.documentElement.offsetWidth); // flush styles while transitions are off
+      el.remove();
+    };
+  }
+
+  /** Run `fn` with transitions off (see transitionsOff). */
+  function withoutTransitions(fn) {
+    const restore = transitionsOff();
+    try {
+      return fn();
+    } finally {
+      restore();
+    }
+  }
+
+  NS.dom = { MARK, makeStyle, isOurs, prepend, append, idle, onReady, onLoad, transitionsOff, withoutTransitions };
 })(globalThis);

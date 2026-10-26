@@ -68,3 +68,71 @@ test('photo backgrounds vs icons in filter mode', () => {
   assert.equal(P.isPhotoBackground('linear-gradient(red, blue)', 500, 500), false);
   assert.equal(P.isPhotoBackground('none', 500, 500), false);
 });
+
+test('used color scheme: CSS color-scheme, else the meta tag; "light dark" follows the system', () => {
+  assert.equal(P.usedScheme('normal', '', false), 'light');
+  assert.equal(P.usedScheme('normal', 'dark', false), 'dark');
+  assert.equal(P.usedScheme('normal', 'dark light', false), 'light');
+  assert.equal(P.usedScheme('normal', 'light dark', true), 'dark');
+  assert.equal(P.usedScheme('light', 'dark', true), 'light', 'CSS wins over the meta tag');
+  assert.equal(P.usedScheme('dark', '', false), 'dark');
+  const T = 'rgba(0, 0, 0, 0)';
+  assert.deepEqual(P.canvasColor(T, T, 'dark'), P.DARK_CANVAS);
+  assert.equal(P.looksDark({ htmlBg: T, bodyBg: T, scheme: 'dark', center: null, text: 'rgb(255, 255, 255)' }), true, 'meta color-scheme dark only');
+});
+
+test('looksDark: majority of points; media points (a black video player) do not count', () => {
+  const T = 'rgba(0, 0, 0, 0)';
+  const light = { chain: [T], text: 'rgb(15, 15, 15)' };
+  const player = { chain: ['rgb(0, 0, 0)'], text: 'rgb(255, 255, 255)' };
+  // a light page with a big black player in the middle of the viewport
+  assert.equal(P.looksDark({ htmlBg: T, bodyBg: 'rgb(255, 255, 255)', samples: [player, { ...player, media: true }, light, light, light] }), false);
+  // a dark app shell: every point dark
+  const shell = { chain: [T, 'rgb(18, 18, 18)'], text: 'rgb(232, 234, 237)' };
+  assert.equal(P.looksDark({ htmlBg: T, bodyBg: T, samples: [shell, shell, shell, { ...light, media: true }, shell] }), true);
+  // a dark site with a big white photo in the middle
+  assert.equal(P.looksDark({ htmlBg: 'rgb(13, 17, 23)', bodyBg: T, samples: [{ chain: [T], media: true }, { chain: [T] }, { chain: [T] }] }), true);
+  // half-dark: dark header band over a light body
+  assert.equal(P.looksDark({ htmlBg: T, bodyBg: 'rgb(255, 255, 255)', samples: [{ chain: ['rgb(11, 12, 16)'] }, light, light, light, light] }), false);
+  // only media points: decide by the canvas
+  assert.equal(P.looksDark({ htmlBg: T, bodyBg: 'rgb(255, 255, 255)', samples: [{ chain: [], media: true }] }), false);
+});
+
+test('svg: strokes and fills of icons become light; a white backdrop of a chart becomes dark', () => {
+  const o = P.svgOverride('none', 'rgb(34, 34, 34)');
+  assert.ok(isLightFg(parseColor(o.stroke)) && !o.fill);
+  assert.match(P.overrideRule('3', o), /stroke:rgb\([^)]*\)!important;/);
+  assert.notEqual(P.overrideKey(o), P.overrideKey({}));
+  assert.equal(P.svgOverride('rgb(255, 255, 255)', 'none', 0.1), null, 'small white shape (a glyph) stays');
+  const bd = P.svgOverride('rgb(255, 255, 255)', 'none', 0.9);
+  assert.ok(isDarkBg(parseColor(bd.fill)), 'chart backdrop');
+  const bar = P.svgOverride('rgb(78, 121, 167)', 'none', 0.9);
+  assert.ok(Math.abs(Lib.color.rgbToHsl(parseColor(bar.fill)).h - Lib.color.rgbToHsl(parseColor('rgb(78, 121, 167)')).h) < 5, 'a colored shape keeps its hue');
+  assert.ok(isDarkBg(parseColor(P.svgOverride('rgb(255, 243, 205)', 'none', 0.8).fill)), 'a pale backdrop of a diagram');
+});
+
+test('filter mode: textures and page wrappers are not photos', () => {
+  const vh = 900;
+  assert.equal(P.isPhotoBackground('url("hero.jpg")', 1000, 400, { repeat: 'no-repeat', size: 'cover', viewportHeight: vh }), true);
+  assert.equal(P.isPhotoBackground('url("hero.jpg")', 1000, 900, { repeat: 'repeat', size: 'auto', viewportHeight: vh }), true, 'full-screen hero');
+  assert.equal(P.isPhotoBackground('url("paper.png")', 1000, 3000, { repeat: 'repeat', size: 'auto', viewportHeight: vh }), false, 'page-sized wrapper');
+  assert.equal(P.isPhotoBackground('url("noise.png")', 900, 500, { repeat: 'repeat', size: '24px 12px', viewportHeight: vh }), false, 'small tile = texture');
+  assert.equal(P.isPhotoBackground('url("bg.jpg")', 1000, 700, { root: true }), false, '<body> / <html>');
+});
+
+test('filter mode: big dark sections of a light page keep their own colors', () => {
+  assert.equal(P.isDarkSection('rgb(11, 12, 16)', 1, 1000, 60, 1000), true, 'dark header on a white page');
+  assert.equal(P.isDarkSection('rgb(11, 12, 16)', 0.01, 1000, 60, 1000), false, 'dark inside dark');
+  assert.equal(P.isDarkSection('rgb(11, 12, 16)', 1, 40, 20, 1000), false, 'small dark badge');
+  assert.equal(P.isDarkSection('rgba(0, 0, 0, 0.5)', 1, 1000, 400, 1000), false, 'translucent overlay');
+  assert.equal(P.isDarkSection('rgb(200, 200, 200)', 1, 1000, 400, 1000), false);
+});
+
+test('looksDark on a light canvas needs every point dark (short page with dark header, band and footer)', () => {
+  const T = 'rgba(0, 0, 0, 0)';
+  const band = { chain: ['rgb(31, 40, 51)'], text: 'rgb(255, 255, 255)' };
+  const main = { chain: [T], text: 'rgb(51, 51, 51)' };
+  assert.equal(P.looksDark({ htmlBg: T, bodyBg: 'rgb(255, 255, 255)', samples: [main, band, band, band, band] }), false);
+  assert.equal(P.looksDark({ htmlBg: T, bodyBg: 'rgb(255, 255, 255)', samples: [band, band, band] }), true, 'a dark wrapper covering the viewport');
+  assert.equal(P.looksDark({ htmlBg: 'rgb(13, 17, 23)', bodyBg: T, samples: [main, band, band] }), true, 'dark canvas: majority');
+});

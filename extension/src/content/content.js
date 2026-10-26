@@ -7,9 +7,12 @@
   if (!L || L.started) return; // idempotent: injected once per frame
   L.started = true;
 
-  const root = document.documentElement;
   // Only HTML documents (not SVG/XML files, not image or plain-text viewers styled by the browser).
-  if (!(root instanceof HTMLHtmlElement)) return;
+  // The <html> element is always looked up again: document.open() (about:blank frames written by a
+  // script) replaces it.
+  if (!(document.documentElement instanceof HTMLHtmlElement)) return;
+  const html = () => document.documentElement;
+  const MEDIA_TAGS = new Set(['IMG', 'VIDEO', 'CANVAS', 'IFRAME', 'EMBED', 'OBJECT', 'PICTURE', 'svg']);
 
   const S = L.settings;
   const isTop = window === window.top;
@@ -43,13 +46,14 @@
   let checksArmed = false;
 
   function setAttr(v) {
-    if (root.getAttribute('data-nd') !== v) root.setAttribute('data-nd', v);
+    const root = html();
+    if (root && root.getAttribute('data-nd') !== v) root.setAttribute('data-nd', v);
   }
 
   function stopEngine() {
     if (!engine) return;
     try {
-      engine.stop();
+      L.dom.withoutTransitions(() => engine.stop());
     } catch {
       /* ignore */
     }
@@ -65,7 +69,7 @@
       stopEngine();
       evaluate();
     };
-    engine.start(settings);
+    L.dom.withoutTransitions(() => engine.start(settings));
     if (!appliedAt) appliedAt = performance.now();
   }
 
@@ -116,16 +120,43 @@
 
   // ---- "already dark" detection
 
+  /** Colors of the page with our styles off: canvas, color scheme and a 3×3 grid of viewport points. */
   function measure() {
     const body = document.body;
+    const root = html();
     const cs = (el) => getComputedStyle(el);
-    const m = { htmlBg: cs(root).backgroundColor, bodyBg: body ? cs(body).backgroundColor : 'rgba(0, 0, 0, 0)', center: /** @type {string[] | null} */ (null), text: body ? cs(body).color : '' };
-    const x = innerWidth / 2, y = innerHeight / 2;
-    let el = x > 0 && y > 0 ? document.elementFromPoint(x, y) : null;
-    if (el) {
-      m.text = cs(el).color;
-      m.center = [];
-      for (; el && el !== body && el !== root; el = el.parentElement) m.center.push(cs(el).backgroundColor);
+    const rcs = cs(root);
+    const meta = document.querySelector('meta[name="color-scheme" i]');
+    const m = {
+      htmlBg: rcs.backgroundColor,
+      bodyBg: body ? cs(body).backgroundColor : 'rgba(0, 0, 0, 0)',
+      scheme: L.page.usedScheme(rcs.colorScheme, meta ? meta.getAttribute('content') || '' : '', darkQuery.matches),
+      text: body ? cs(body).color : '',
+      samples: /** @type {any[]} */ ([]),
+    };
+    const W = innerWidth, H = innerHeight;
+    if (W > 0 && H > 0) {
+      for (let i = 0; i < 9; i++) {
+        let el = document.elementFromPoint(W * ((i % 3) * 2 + 1) / 6, H * (Math.floor(i / 3) * 2 + 1) / 6);
+        if (!el) continue;
+        const s = { chain: /** @type {string[]} */ ([]), text: cs(el).color, media: false };
+        // up to the first opaque background; a photo / video / canvas on the way says nothing about the theme
+        for (; el && el !== body && el !== root; el = el.parentElement) {
+          if (MEDIA_TAGS.has(el.tagName)) {
+            s.media = true;
+            break;
+          }
+          const c = cs(el);
+          if (c.backgroundImage.indexOf('url(') >= 0) {
+            s.media = true;
+            break;
+          }
+          s.chain.push(c.backgroundColor);
+          const bg = L.color.parseColor(c.backgroundColor);
+          if (bg && bg.a >= 1) break;
+        }
+        m.samples.push(s);
+      }
     }
     return m;
   }
@@ -133,7 +164,7 @@
   function checkDark() {
     try {
       if (!engine || detectedDark || !document.body) return;
-      const m = engine.suspend(measure);
+      const m = L.dom.withoutTransitions(() => engine.suspend(measure));
       if (engine.setCanvas) engine.setCanvas(m);
       if (L.page.looksDark(m)) {
         detectedDark = true;
