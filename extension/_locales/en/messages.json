@@ -1,0 +1,254 @@
+{
+  "extName": {
+    "message": "Dark Mode — fast dark theme for any website"
+  },
+  "extShortName": {
+    "message": "Dark Mode"
+  },
+  "extDescription": {
+    "message": "Dark theme for any website with no white flash and no lag. Two engines, brightness, schedule, per-site list. Free."
+  },
+  "actionTitle": {
+    "message": "Dark Mode"
+  },
+  "cmdToggleSite": {
+    "message": "Turn on or off for the current site"
+  },
+  "cmdToggleGlobal": {
+    "message": "Turn on or off everywhere"
+  },
+  "globalSwitch": {
+    "message": "Turn on or off everywhere"
+  },
+  "statusLoading": {
+    "message": "Checking the page…"
+  },
+  "statusOn": {
+    "message": "Dark theme is on · $1 engine."
+  },
+  "statusForcedFilter": {
+    "message": "The page is very large, so the fast engine is used."
+  },
+  "statusAppliedIn": {
+    "message": "Applied in $1 ms."
+  },
+  "statusAlreadyDark": {
+    "message": "This site is already dark, so it is left as is."
+  },
+  "statusSiteOff": {
+    "message": "Turned off for this site."
+  },
+  "statusGlobalOff": {
+    "message": "Turned off on all sites."
+  },
+  "statusScheduleSystem": {
+    "message": "Off right now: the system theme is light."
+  },
+  "statusScheduleTime": {
+    "message": "Off right now by schedule (dark from $1 to $2)."
+  },
+  "statusError": {
+    "message": "Could not apply the theme on this page."
+  },
+  "noAccessHost": {
+    "message": "Page not available"
+  },
+  "localFile": {
+    "message": "Local files"
+  },
+  "restricted": {
+    "message": "The browser does not let extensions change this page (browser pages, the extension store). If it is a regular site opened before installation, reload it."
+  },
+  "reload": {
+    "message": "Reload the page"
+  },
+  "siteTurnOff": {
+    "message": "Turn off for this site"
+  },
+  "siteTurnOn": {
+    "message": "Turn on for this site"
+  },
+  "siteForceOn": {
+    "message": "Darken anyway"
+  },
+  "siteEngine": {
+    "message": "Engine for this site"
+  },
+  "engineDefault": {
+    "message": "Default"
+  },
+  "engineDefaultNamed": {
+    "message": "Default ($1)"
+  },
+  "engineDynamic": {
+    "message": "Smart"
+  },
+  "engineFilter": {
+    "message": "Fast"
+  },
+  "adjustTitle": {
+    "message": "Adjust the theme"
+  },
+  "brightness": {
+    "message": "Brightness"
+  },
+  "contrast": {
+    "message": "Contrast"
+  },
+  "sepia": {
+    "message": "Sepia"
+  },
+  "resetAdjust": {
+    "message": "Reset"
+  },
+  "scheduleAlwaysShort": {
+    "message": "Dark theme: always"
+  },
+  "scheduleSystemShort": {
+    "message": "Dark theme: follows the system"
+  },
+  "scheduleTimeShort": {
+    "message": "Dark theme: from $1 to $2"
+  },
+  "change": {
+    "message": "change"
+  },
+  "settings": {
+    "message": "Settings"
+  },
+  "shortcutHint": {
+    "message": "$1 toggles this site"
+  },
+  "otherExtensions": {
+    "message": "More extensions by the author"
+  },
+  "optionsTitle": {
+    "message": "Dark Mode — settings"
+  },
+  "optionsLead": {
+    "message": "A fast dark theme for any website. Free, no account, everything stays in your browser."
+  },
+  "globalTitle": {
+    "message": "Dark theme on websites"
+  },
+  "globalHint": {
+    "message": "The main switch. Sites in the list below have their own settings."
+  },
+  "engineTitle": {
+    "message": "Default engine"
+  },
+  "engineDynamicHint": {
+    "message": "Recolors the site’s own styles. Images and video stay untouched. Best for most sites."
+  },
+  "engineFilterHint": {
+    "message": "Inverts the page with a single CSS filter and turns images back to their original colors. Almost zero load, great for heavy pages."
+  },
+  "detectDark": {
+    "message": "Leave sites that are already dark alone"
+  },
+  "scheduleTitle": {
+    "message": "When to turn on"
+  },
+  "scheduleAlways": {
+    "message": "Always"
+  },
+  "scheduleSystem": {
+    "message": "Follow the system (when Windows, macOS or Linux uses a dark theme)"
+  },
+  "scheduleTime": {
+    "message": "By time"
+  },
+  "scheduleFrom": {
+    "message": "from"
+  },
+  "scheduleTo": {
+    "message": "to"
+  },
+  "shortcutsTitle": {
+    "message": "Keyboard shortcuts"
+  },
+  "shortcutsEdit": {
+    "message": "Change shortcuts"
+  },
+  "shortcutNotSet": {
+    "message": "not set"
+  },
+  "sitesTitle": {
+    "message": "Sites"
+  },
+  "sitesHint": {
+    "message": "A rule for example.com also covers its subdomains. It is easiest to switch sites from the extension popup."
+  },
+  "sitesAddLabel": {
+    "message": "Site address"
+  },
+  "sitesAddPlaceholder": {
+    "message": "example.com"
+  },
+  "sitesAdd": {
+    "message": "Add"
+  },
+  "sitesAddInvalid": {
+    "message": "Enter a site address, e.g. example.com"
+  },
+  "modeDefault": {
+    "message": "Default"
+  },
+  "modeOff": {
+    "message": "Never darken"
+  },
+  "modeOn": {
+    "message": "Always darken"
+  },
+  "colSite": {
+    "message": "Site"
+  },
+  "colMode": {
+    "message": "Dark theme"
+  },
+  "colEngine": {
+    "message": "Engine"
+  },
+  "colActions": {
+    "message": "Actions"
+  },
+  "remove": {
+    "message": "Remove"
+  },
+  "sitesEmpty": {
+    "message": "No rules yet: the dark theme works the same on every site."
+  },
+  "sitesExport": {
+    "message": "Export to JSON"
+  },
+  "sitesImport": {
+    "message": "Import from JSON"
+  },
+  "sitesClear": {
+    "message": "Clear the list"
+  },
+  "sitesClearConfirm": {
+    "message": "Remove all site rules?"
+  },
+  "sitesCleared": {
+    "message": "The list is cleared."
+  },
+  "exportDone": {
+    "message": "Saved $1 rules."
+  },
+  "importDone": {
+    "message": "Import: $1 added, $2 updated, $3 skipped."
+  },
+  "importFailed": {
+    "message": "This file does not fit: a JSON site list is expected."
+  },
+  "aboutTitle": {
+    "message": "About"
+  },
+  "aboutPrivacy": {
+    "message": "The extension makes no network requests, collects no statistics and shows no ads. Settings are stored only in this browser."
+  },
+  "privacyLink": {
+    "message": "Privacy policy"
+  }
+}

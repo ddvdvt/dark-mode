@@ -1,0 +1,254 @@
+{
+  "extName": {
+    "message": "Тёмный режим — быстрая тёмная тема для любых сайтов"
+  },
+  "extShortName": {
+    "message": "Тёмный режим"
+  },
+  "extDescription": {
+    "message": "Тёмная тема на любом сайте без белой вспышки и тормозов. Два режима, яркость, расписание, список сайтов. Бесплатно."
+  },
+  "actionTitle": {
+    "message": "Тёмный режим"
+  },
+  "cmdToggleSite": {
+    "message": "Включить или выключить на текущем сайте"
+  },
+  "cmdToggleGlobal": {
+    "message": "Включить или выключить везде"
+  },
+  "globalSwitch": {
+    "message": "Включить или выключить везде"
+  },
+  "statusLoading": {
+    "message": "Проверяю страницу…"
+  },
+  "statusOn": {
+    "message": "Тёмная тема включена · $1 режим."
+  },
+  "statusForcedFilter": {
+    "message": "Страница очень большая, поэтому работает быстрый режим."
+  },
+  "statusAppliedIn": {
+    "message": "Применена за $1 мс."
+  },
+  "statusAlreadyDark": {
+    "message": "Сайт уже тёмный — оставили как есть."
+  },
+  "statusSiteOff": {
+    "message": "Выключено на этом сайте."
+  },
+  "statusGlobalOff": {
+    "message": "Расширение выключено на всех сайтах."
+  },
+  "statusScheduleSystem": {
+    "message": "Сейчас выключено: в системе светлая тема."
+  },
+  "statusScheduleTime": {
+    "message": "Сейчас выключено по расписанию (тёмная тема с $1 до $2)."
+  },
+  "statusError": {
+    "message": "Не удалось применить тему на этой странице."
+  },
+  "noAccessHost": {
+    "message": "Страница недоступна"
+  },
+  "localFile": {
+    "message": "Локальные файлы"
+  },
+  "restricted": {
+    "message": "Здесь браузер не даёт расширениям менять страницу (служебные страницы, магазин расширений). Если это обычный сайт, открытый до установки, перезагрузите его."
+  },
+  "reload": {
+    "message": "Перезагрузить страницу"
+  },
+  "siteTurnOff": {
+    "message": "Выключить на этом сайте"
+  },
+  "siteTurnOn": {
+    "message": "Включить на этом сайте"
+  },
+  "siteForceOn": {
+    "message": "Всё равно затемнить"
+  },
+  "siteEngine": {
+    "message": "Режим на этом сайте"
+  },
+  "engineDefault": {
+    "message": "Как везде"
+  },
+  "engineDefaultNamed": {
+    "message": "Как везде ($1)"
+  },
+  "engineDynamic": {
+    "message": "Умный"
+  },
+  "engineFilter": {
+    "message": "Быстрый"
+  },
+  "adjustTitle": {
+    "message": "Настройка темы"
+  },
+  "brightness": {
+    "message": "Яркость"
+  },
+  "contrast": {
+    "message": "Контраст"
+  },
+  "sepia": {
+    "message": "Сепия"
+  },
+  "resetAdjust": {
+    "message": "Сбросить"
+  },
+  "scheduleAlwaysShort": {
+    "message": "Тёмная тема: всегда"
+  },
+  "scheduleSystemShort": {
+    "message": "Тёмная тема: как в системе"
+  },
+  "scheduleTimeShort": {
+    "message": "Тёмная тема: с $1 до $2"
+  },
+  "change": {
+    "message": "изменить"
+  },
+  "settings": {
+    "message": "Настройки"
+  },
+  "shortcutHint": {
+    "message": "$1 — вкл/выкл на сайте"
+  },
+  "otherExtensions": {
+    "message": "Другие расширения автора"
+  },
+  "optionsTitle": {
+    "message": "Тёмный режим — настройки"
+  },
+  "optionsLead": {
+    "message": "Быстрая тёмная тема для любых сайтов. Бесплатно, без аккаунта, всё хранится только в вашем браузере."
+  },
+  "globalTitle": {
+    "message": "Тёмная тема на сайтах"
+  },
+  "globalHint": {
+    "message": "Главный выключатель. Сайты из списка ниже настраиваются отдельно."
+  },
+  "engineTitle": {
+    "message": "Режим по умолчанию"
+  },
+  "engineDynamicHint": {
+    "message": "Перекрашивает цвета самого сайта. Картинки и видео не трогает. Подходит большинству сайтов."
+  },
+  "engineFilterHint": {
+    "message": "Инвертирует страницу одним CSS-фильтром, а картинки возвращает в исходные цвета. Почти нулевая нагрузка, хорош для тяжёлых страниц."
+  },
+  "detectDark": {
+    "message": "Не трогать сайты, которые уже тёмные"
+  },
+  "scheduleTitle": {
+    "message": "Когда включать"
+  },
+  "scheduleAlways": {
+    "message": "Всегда"
+  },
+  "scheduleSystem": {
+    "message": "Как в системе (когда в Windows, macOS или Linux включена тёмная тема)"
+  },
+  "scheduleTime": {
+    "message": "По времени"
+  },
+  "scheduleFrom": {
+    "message": "с"
+  },
+  "scheduleTo": {
+    "message": "до"
+  },
+  "shortcutsTitle": {
+    "message": "Горячие клавиши"
+  },
+  "shortcutsEdit": {
+    "message": "Изменить сочетания"
+  },
+  "shortcutNotSet": {
+    "message": "не назначено"
+  },
+  "sitesTitle": {
+    "message": "Сайты"
+  },
+  "sitesHint": {
+    "message": "Правило для example.com действует и на его поддомены. Включать и выключать сайты удобнее из окна расширения."
+  },
+  "sitesAddLabel": {
+    "message": "Адрес сайта"
+  },
+  "sitesAddPlaceholder": {
+    "message": "example.com"
+  },
+  "sitesAdd": {
+    "message": "Добавить"
+  },
+  "sitesAddInvalid": {
+    "message": "Введите адрес сайта, например example.com"
+  },
+  "modeDefault": {
+    "message": "Как везде"
+  },
+  "modeOff": {
+    "message": "Не затемнять"
+  },
+  "modeOn": {
+    "message": "Затемнять всегда"
+  },
+  "colSite": {
+    "message": "Сайт"
+  },
+  "colMode": {
+    "message": "Тёмная тема"
+  },
+  "colEngine": {
+    "message": "Режим"
+  },
+  "colActions": {
+    "message": "Действия"
+  },
+  "remove": {
+    "message": "Удалить"
+  },
+  "sitesEmpty": {
+    "message": "Пока нет ни одного правила — тёмная тема работает на всех сайтах одинаково."
+  },
+  "sitesExport": {
+    "message": "Экспорт в JSON"
+  },
+  "sitesImport": {
+    "message": "Импорт из JSON"
+  },
+  "sitesClear": {
+    "message": "Очистить список"
+  },
+  "sitesClearConfirm": {
+    "message": "Удалить все правила для сайтов?"
+  },
+  "sitesCleared": {
+    "message": "Список очищен."
+  },
+  "exportDone": {
+    "message": "Сохранено правил: $1."
+  },
+  "importDone": {
+    "message": "Импорт: добавлено $1, обновлено $2, пропущено $3."
+  },
+  "importFailed": {
+    "message": "Файл не подходит: нужен JSON со списком сайтов."
+  },
+  "aboutTitle": {
+    "message": "О расширении"
+  },
+  "aboutPrivacy": {
+    "message": "Расширение не делает сетевых запросов, не собирает статистику и не показывает рекламу. Настройки хранятся только в этом браузере."
+  },
+  "privacyLink": {
+    "message": "Политика конфиденциальности"
+  }
+}

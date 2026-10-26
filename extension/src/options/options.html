@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="optionsTitle">Тёмный режим — настройки</title>
+  <link rel="stylesheet" href="../shared/ui.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="page">
+    <header class="head">
+      <img src="../../icons/icon48.png" width="40" height="40" alt="">
+      <div>
+        <h1 data-i18n="extShortName">Тёмный режим</h1>
+        <p class="muted" data-i18n="optionsLead">Быстрая тёмная тема для любых сайтов. Бесплатно, без аккаунта, всё хранится только в вашем браузере.</p>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="row">
+        <div>
+          <h2 data-i18n="globalTitle">Тёмная тема на сайтах</h2>
+          <p class="muted" data-i18n="globalHint">Главный выключатель. Сайты из списка ниже настраиваются отдельно.</p>
+        </div>
+        <button id="enabled" class="switch" role="switch" aria-checked="true" aria-labelledby="enabledLabel"></button>
+        <span id="enabledLabel" class="hidden" data-i18n="globalTitle">Тёмная тема на сайтах</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 id="engineTitle" data-i18n="engineTitle">Режим по умолчанию</h2>
+      <div class="choices" role="radiogroup" aria-labelledby="engineTitle">
+        <label class="choice">
+          <input type="radio" name="engine" value="dynamic">
+          <span><strong data-i18n="engineDynamic">Умный</strong><br><span class="muted" data-i18n="engineDynamicHint">Перекрашивает цвета самого сайта. Картинки и видео не трогает. Подходит большинству сайтов.</span></span>
+        </label>
+        <label class="choice">
+          <input type="radio" name="engine" value="filter">
+          <span><strong data-i18n="engineFilter">Быстрый</strong><br><span class="muted" data-i18n="engineFilterHint">Инвертирует страницу одним CSS-фильтром, картинки возвращает в исходные цвета. Почти нулевая нагрузка, хорош для тяжёлых страниц.</span></span>
+        </label>
+      </div>
+      <label class="check"><input type="checkbox" id="detectDark"> <span data-i18n="detectDark">Не трогать сайты, которые уже тёмные</span></label>
+    </section>
+
+    <section class="panel">
+      <h2 data-i18n="adjustTitle">Настройка темы</h2>
+      <div class="sliders">
+        <div class="slider"><label for="brightness" data-i18n="brightness">Яркость</label><input id="brightness" type="range" min="50" max="150" step="5"><output id="brightnessOut" for="brightness">100%</output></div>
+        <div class="slider"><label for="contrast" data-i18n="contrast">Контраст</label><input id="contrast" type="range" min="50" max="150" step="5"><output id="contrastOut" for="contrast">100%</output></div>
+        <div class="slider"><label for="sepia" data-i18n="sepia">Сепия</label><input id="sepia" type="range" min="0" max="100" step="5"><output id="sepiaOut" for="sepia">0%</output></div>
+      </div>
+      <button id="resetAdjust" class="btn small" type="button" data-i18n="resetAdjust">Сбросить</button>
+    </section>
+
+    <section class="panel">
+      <h2 id="scheduleTitle" data-i18n="scheduleTitle">Когда включать</h2>
+      <div class="choices" role="radiogroup" aria-labelledby="scheduleTitle">
+        <label class="check"><input type="radio" name="schedule" value="always"> <span data-i18n="scheduleAlways">Всегда</span></label>
+        <label class="check"><input type="radio" name="schedule" value="system"> <span data-i18n="scheduleSystem">Как в системе (когда в Windows/macOS включена тёмная тема)</span></label>
+        <label class="check"><input type="radio" name="schedule" value="time"> <span data-i18n="scheduleTime">По времени</span></label>
+      </div>
+      <div class="times" id="times">
+        <label><span data-i18n="scheduleFrom">с</span> <input type="time" id="from" required></label>
+        <label><span data-i18n="scheduleTo">до</span> <input type="time" id="to" required></label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 data-i18n="shortcutsTitle">Горячие клавиши</h2>
+      <ul class="shortcuts" id="shortcuts"></ul>
+      <button id="editShortcuts" class="btn small" type="button" data-i18n="shortcutsEdit">Изменить сочетания</button>
+    </section>
+
+    <section class="panel">
+      <h2 data-i18n="sitesTitle">Сайты</h2>
+      <p class="muted" data-i18n="sitesHint">Правило для example.com действует и на его поддомены. Включать и выключать сайты удобнее из окна расширения.</p>
+      <form id="addForm" class="add">
+        <label for="addHost" class="visually-hidden" data-i18n="sitesAddLabel">Адрес сайта</label>
+        <input type="text" id="addHost" data-i18n-placeholder="sitesAddPlaceholder" placeholder="example.com" autocomplete="off" spellcheck="false">
+        <label for="addMode" class="visually-hidden" data-i18n="colMode">Тёмная тема</label>
+        <select id="addMode">
+          <option value="off" data-i18n="modeOff">Не затемнять</option>
+          <option value="on" data-i18n="modeOn">Затемнять всегда</option>
+        </select>
+        <button class="btn" type="submit" data-i18n="sitesAdd">Добавить</button>
+      </form>
+      <p id="addError" class="error hidden" role="alert"></p>
+      <table class="sites" id="sitesTable">
+        <thead><tr><th data-i18n="colSite">Сайт</th><th data-i18n="colMode">Тёмная тема</th><th data-i18n="colEngine">Режим</th><th><span class="hidden" data-i18n="colActions">Действия</span></th></tr></thead>
+        <tbody id="sites"></tbody>
+      </table>
+      <p id="sitesEmpty" class="empty muted" data-i18n="sitesEmpty">Пока нет ни одного правила — тёмная тема работает на всех сайтах одинаково.</p>
+      <div class="io">
+        <button id="export" class="btn small" type="button" data-i18n="sitesExport">Экспорт в JSON</button>
+        <label class="btn small" for="importFile"><span data-i18n="sitesImport">Импорт из JSON</span></label>
+        <input type="file" id="importFile" accept="application/json,.json" class="visually-hidden">
+        <button id="clearSites" class="btn small danger" type="button" data-i18n="sitesClear">Очистить список</button>
+      </div>
+      <p id="ioMsg" class="muted" role="status"></p>
+    </section>
+
+    <section class="panel about">
+      <h2 data-i18n="aboutTitle">О расширении</h2>
+      <p data-i18n="aboutPrivacy">Расширение не делает сетевых запросов, не собирает статистику и не показывает рекламу. Настройки хранятся только в этом браузере.</p>
+      <p><a href="#" target="_blank" rel="noopener" data-brand-link="privacy" data-i18n="privacyLink">Политика конфиденциальности</a></p>
+    </section>
+  </div>
+  <footer class="footer page-footer">
+    <span id="version" class="muted"></span>
+    <a href="#" target="_blank" rel="noopener" data-brand-link="other" data-i18n="otherExtensions">Другие расширения автора</a>
+  </footer>
+  <script type="module" src="options.js"></script>
+</body>
+</html>

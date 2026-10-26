@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title data-i18n="extShortName">Тёмный режим</title>
+  <link rel="stylesheet" href="../shared/ui.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="top">
+    <img src="../../icons/icon32.png" width="22" height="22" alt="">
+    <h1 data-i18n="extShortName">Тёмный режим</h1>
+    <button id="global" class="switch" role="switch" aria-checked="true" data-i18n-title="globalSwitch" title="Включить или выключить везде" aria-label="Включить или выключить везде"></button>
+  </header>
+
+  <main>
+    <section class="card" id="siteCard" aria-live="polite">
+      <div class="host-row">
+        <span class="dot" id="dot" aria-hidden="true"></span>
+        <strong id="host" class="host">…</strong>
+      </div>
+      <p id="status" class="status muted" data-i18n="statusLoading">Проверяю страницу…</p>
+      <div id="siteActions" class="actions hidden">
+        <button id="siteToggle" class="btn primary" type="button">…</button>
+      </div>
+      <label id="engineRow" class="engine-row hidden">
+        <span data-i18n="siteEngine">Режим на этом сайте</span>
+        <select id="siteEngine">
+          <option value="" data-i18n="engineDefault">Как везде</option>
+          <option value="dynamic" data-i18n="engineDynamic">Умный</option>
+          <option value="filter" data-i18n="engineFilter">Быстрый</option>
+        </select>
+      </label>
+      <div id="restricted" class="hidden">
+        <p class="muted" data-i18n="restricted">Здесь браузер не даёт расширениям менять страницу (служебные страницы, магазин расширений). Если это обычный сайт, открытый до установки, перезагрузите его.</p>
+        <button id="reload" class="btn small" type="button" data-i18n="reload">Перезагрузить страницу</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 data-i18n="adjustTitle">Настройка темы</h2>
+      <div class="slider"><label for="brightness" data-i18n="brightness">Яркость</label><input id="brightness" type="range" min="50" max="150" step="5"><output for="brightness" id="brightnessOut">100%</output></div>
+      <div class="slider"><label for="contrast" data-i18n="contrast">Контраст</label><input id="contrast" type="range" min="50" max="150" step="5"><output for="contrast" id="contrastOut">100%</output></div>
+      <div class="slider"><label for="sepia" data-i18n="sepia">Сепия</label><input id="sepia" type="range" min="0" max="100" step="5"><output for="sepia" id="sepiaOut">0%</output></div>
+      <div class="row-end"><button id="resetAdjust" class="btn link small" type="button" data-i18n="resetAdjust">Сбросить</button></div>
+    </section>
+
+    <p class="schedule muted"><span id="schedule"></span> · <a href="../options/options.html" target="_blank" id="scheduleLink" data-i18n="change">изменить</a></p>
+  </main>
+
+  <footer class="footer">
+    <a href="../options/options.html" target="_blank" data-i18n="settings">Настройки</a>
+    <span id="shortcut" class="muted"></span>
+    <a href="#" target="_blank" rel="noopener" data-brand-link="other" data-i18n="otherExtensions">Другие расширения автора</a>
+  </footer>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

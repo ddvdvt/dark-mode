@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Dynamic</title>
+<style>body{background:#fff;color:#222;font:15px sans-serif}.item{padding:4px;border-bottom:1px solid #eee}</style></head>
+<body><h1>Dynamic content</h1><div id="list"></div>
+<script>
+  window.addItems = (n) => {
+    const list = document.getElementById('list');
+    for (let i = 0; i < n; i++) {
+      const d = document.createElement('div');
+      d.className = 'item';
+      d.textContent = 'Item ' + i;
+      if (i % 10 === 0) d.style.background = '#ffffff';
+      list.appendChild(d);
+    }
+  };
+  window.addStyled = () => {
+    const s = document.createElement('style');
+    s.textContent = '.late { background: #fafafa; color: #000; }';
+    document.head.appendChild(s);
+    const d = document.createElement('div');
+    d.className = 'late'; d.id = 'late'; d.textContent = 'late';
+    document.body.appendChild(d);
+  };
+  window.addCssom = () => {
+    const s = document.createElement('style');
+    document.head.appendChild(s);
+    s.sheet.insertRule('.cssom { background-color: rgb(250, 250, 250); color: rgb(0, 0, 0); }');
+    const d = document.createElement('div');
+    d.className = 'cssom'; d.id = 'cssom'; d.textContent = 'cssom';
+    document.body.appendChild(d);
+  };
+</script>
+</body></html>

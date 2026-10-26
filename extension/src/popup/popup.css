@@ -1,0 +1,41 @@
+body { width: 340px; }
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.top h1 { flex: 1; margin: 0; font-size: 15px; }
+
+main { padding: 10px 12px 4px; display: grid; gap: 10px; }
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 11px 12px;
+  display: grid;
+  gap: 8px;
+  background: var(--bg);
+}
+.card h2 { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--fg-muted); }
+.card p { margin: 0; }
+
+.host-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.host { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); flex: none; }
+.dot.on { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.dot.dark { background: var(--ok); }
+
+.actions .btn { width: 100%; }
+.actions .btn.secondary { background: var(--bg-soft); color: var(--fg); border-color: var(--border); font-weight: 500; }
+
+.engine-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.engine-row select { min-width: 130px; }
+
+.row-end { display: flex; justify-content: flex-end; }
+
+.schedule { margin: 0 2px 6px; font-size: 12px; }
+
+body.global-off #siteCard { opacity: .75; }

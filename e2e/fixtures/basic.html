@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Тестовая статья</title>
+<link rel="stylesheet" href="/x-origin/remote.css" data-cross>
+<style>
+  :root { --surface: #ffffff; --text: #1f2328; --muted: #59636e; --line: #d1d9e0; --brand: #0969da; }
+  body { margin: 0; background: var(--surface); color: var(--text); font: 16px/1.5 system-ui, sans-serif; }
+  header { position: fixed; top: 0; left: 0; right: 0; height: 48px; background: #f6f8fa; border-bottom: 1px solid var(--line); display: flex; align-items: center; padding: 0 16px; z-index: 2; }
+  header a { color: var(--brand); margin-right: 16px; }
+  main { max-width: 720px; margin: 64px auto 40px; padding: 0 16px; }
+  .card { border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 16px 0; background: linear-gradient(#ffffff, #f6f8fa); }
+  .muted { color: var(--muted); }
+  .badge { background: #ddf4ff; color: #0550ae; padding: 2px 8px; border-radius: 10px; }
+  .warn { background-color: #fff8c5; border-left: 4px solid #d4a72c; padding: 8px 12px; }
+  @media (min-width: 600px) { .wide { background: #eef1f4; } }
+  button.primary { background: #1f883d; color: white; border: 0; padding: 6px 14px; border-radius: 6px; }
+  input, textarea, select { border: 1px solid var(--line); }
+  table { border-collapse: collapse; }
+  td { border: 1px solid var(--line); padding: 4px 8px; }
+  .photo { display: block; width: 240px; height: 120px; }
+  .hero { width: 320px; height: 120px; background: url(/photo.png) center / cover; color: white; display: flex; align-items: end; padding: 8px; }
+</style>
+</head>
+<body>
+<header><a href="#a">Главная</a><a href="#b">Статьи</a><span class="badge">новое</span></header>
+<main>
+  <h1 id="title">Как читать по ночам и не уставать</h1>
+  <p id="lead" class="muted">Тестовая страница для проверки тёмной темы: текст, ссылки, формы, таблицы, картинки.</p>
+  <p>Обычный абзац с <a id="link" href="#x">ссылкой</a>, <code>кодом</code> и <mark>выделением</mark>.</p>
+  <div class="card wide" id="card">Карточка с градиентом и рамкой.</div>
+  <div class="warn" id="warn">Внимание: блок с жёлтым фоном.</div>
+  <div id="inline" style="background:#ffffff;color:#333333;padding:8px">Блок со встроенным стилем.</div>
+  <div id="remote" class="remote-box">Блок, оформленный стилем с другого домена.</div>
+  <table id="table" bgcolor="#ffffff"><tr><td bgcolor="#f0f0f0" id="legacy">Старая таблица</td><td><font color="#000080">синий текст</font></td></tr></table>
+  <form>
+    <p><label>Имя <input id="name" value="Иван"></label></p>
+    <p><textarea id="text">Текст в поле</textarea></p>
+    <p><select id="sel"><option>Первый</option></select> <button type="button" class="primary" id="btn">Отправить</button></p>
+  </form>
+  <img class="photo" id="photo" src="/photo.png" alt="фото">
+  <div class="hero" id="hero">Фон-картинка</div>
+  <svg id="icon" width="24" height="24" viewBox="0 0 24 24"><path id="iconPath" fill="#24292f" d="M12 2 2 22h20z"/></svg>
+  <iframe id="frame" src="/frame.html" width="300" height="80" title="frame"></iframe>
+  <div style="height: 1200px"></div>
+</main>
+</body>
+</html>

@@ -56,14 +56,15 @@
   }
 
   /**
-   * @typedef {{ bg?: string, fg?: string, image?: string }} Override
+   * @typedef {{ bg?: string, fg?: string, image?: string, fill?: string, border?: string }} Override
    */
 
   /**
    * Fallback of the dynamic engine for an element styled by something the stylesheet pass could not
    * rewrite (cross-origin CSS, inline style, legacy bgcolor/color attributes). Returns null when the
    * element already fits the dark theme — transformed colors are never transformed again.
-   * @param {{ bg: string, fg: string, image?: string }} cs computed values
+   * @param {{ bg: string, fg: string, image?: string, border?: string }} cs computed values
+   *   border: color of the first visible border side, if any
    * @returns {Override | null}
    */
   function elementOverride(cs) {
@@ -77,12 +78,24 @@
       const t = NS.css.transformValue(cs.image, 'bg');
       if (t !== cs.image) o.image = t;
     }
-    return o.bg || o.fg || o.image ? o : null;
+    const bd = cs.border ? C.parseColor(cs.border) : null;
+    if (bd && bd.a > 0 && C.rgbToHsl(bd).l > 0.5) o.border = C.formatColor(C.darken(bd, 'border'));
+    return o.bg || o.fg || o.image || o.border ? o : null;
+  }
+
+  /**
+   * Shapes inside inline SVG (icons): dark fills become light, like text.
+   * @param {string} fill computed fill @returns {Override | null}
+   */
+  function svgOverride(fill) {
+    const c = C.parseColor(fill);
+    if (!c || c.a === 0 || C.isLightFg(c)) return null;
+    return { fill: C.formatColor(C.darken(c, 'fg')) };
   }
 
   /** Stable cache key of an override. @param {Override} o */
   function overrideKey(o) {
-    return (o.bg || '') + '|' + (o.fg || '') + '|' + (o.image || '');
+    return (o.bg || '') + '|' + (o.fg || '') + '|' + (o.image || '') + '|' + (o.fill || '') + '|' + (o.border || '');
   }
 
   /**
@@ -93,7 +106,9 @@
     let body = '';
     if (o.bg) body += `background-color:${o.bg}!important;`;
     if (o.image) body += `background-image:${o.image}!important;`;
-    if (o.fg) body += `color:${o.fg}!important;fill:${o.fg};`;
+    if (o.fg) body += `color:${o.fg}!important;`;
+    if (o.fill) body += `fill:${o.fill}!important;`;
+    if (o.border) body += `border-color:${o.border}!important;`;
     return `[data-nd-c="${id}"]{${body}}`;
   }
 
@@ -109,5 +124,5 @@
     return w >= 64 && h >= 48 && w * h >= 8000;
   }
 
-  NS.page = { effectiveBackground, canvasColor, looksDark, elementOverride, overrideKey, overrideRule, isPhotoBackground, DARK_LUMINANCE };
+  NS.page = { effectiveBackground, canvasColor, looksDark, elementOverride, svgOverride, overrideKey, overrideRule, isPhotoBackground, DARK_LUMINANCE };
 })(globalThis);

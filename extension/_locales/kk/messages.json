@@ -1,0 +1,254 @@
+{
+  "extName": {
+    "message": "Түнгі режим — кез келген сайтқа жылдам қараңғы тақырып"
+  },
+  "extShortName": {
+    "message": "Түнгі режим"
+  },
+  "extDescription": {
+    "message": "Кез келген сайтқа ақ жарқылсыз әрі кідіріссіз қараңғы тақырып. Екі режим, жарықтық, кесте, сайттар тізімі. Тегін."
+  },
+  "actionTitle": {
+    "message": "Түнгі режим"
+  },
+  "cmdToggleSite": {
+    "message": "Ағымдағы сайтта қосу не өшіру"
+  },
+  "cmdToggleGlobal": {
+    "message": "Барлық жерде қосу не өшіру"
+  },
+  "globalSwitch": {
+    "message": "Барлық жерде қосу не өшіру"
+  },
+  "statusLoading": {
+    "message": "Бет тексерілуде…"
+  },
+  "statusOn": {
+    "message": "Қараңғы тақырып қосулы · $1 режим."
+  },
+  "statusForcedFilter": {
+    "message": "Бет өте үлкен, сондықтан жылдам режим қолданылады."
+  },
+  "statusAppliedIn": {
+    "message": "$1 мс ішінде қолданылды."
+  },
+  "statusAlreadyDark": {
+    "message": "Сайт онсыз да қараңғы — өзгертілмеді."
+  },
+  "statusSiteOff": {
+    "message": "Бұл сайтта өшірілген."
+  },
+  "statusGlobalOff": {
+    "message": "Барлық сайтта өшірілген."
+  },
+  "statusScheduleSystem": {
+    "message": "Қазір өшірулі: жүйеде ашық тақырып."
+  },
+  "statusScheduleTime": {
+    "message": "Кесте бойынша қазір өшірулі (қараңғы тақырып $1 – $2)."
+  },
+  "statusError": {
+    "message": "Бұл бетте тақырыпты қолдану мүмкін болмады."
+  },
+  "noAccessHost": {
+    "message": "Бет қолжетімсіз"
+  },
+  "localFile": {
+    "message": "Жергілікті файлдар"
+  },
+  "restricted": {
+    "message": "Браузер бұл бетті өзгертуге рұқсат бермейді (қызметтік беттер, кеңейтімдер дүкені). Егер бұл орнатудан бұрын ашылған кәдімгі сайт болса, оны қайта жүктеңіз."
+  },
+  "reload": {
+    "message": "Бетті қайта жүктеу"
+  },
+  "siteTurnOff": {
+    "message": "Бұл сайтта өшіру"
+  },
+  "siteTurnOn": {
+    "message": "Бұл сайтта қосу"
+  },
+  "siteForceOn": {
+    "message": "Бәрібір қараңғылау"
+  },
+  "siteEngine": {
+    "message": "Бұл сайттағы режим"
+  },
+  "engineDefault": {
+    "message": "Әдепкі"
+  },
+  "engineDefaultNamed": {
+    "message": "Әдепкі ($1)"
+  },
+  "engineDynamic": {
+    "message": "Ақылды"
+  },
+  "engineFilter": {
+    "message": "Жылдам"
+  },
+  "adjustTitle": {
+    "message": "Тақырыпты баптау"
+  },
+  "brightness": {
+    "message": "Жарықтық"
+  },
+  "contrast": {
+    "message": "Контраст"
+  },
+  "sepia": {
+    "message": "Сепия"
+  },
+  "resetAdjust": {
+    "message": "Қалпына келтіру"
+  },
+  "scheduleAlwaysShort": {
+    "message": "Қараңғы тақырып: әрқашан"
+  },
+  "scheduleSystemShort": {
+    "message": "Қараңғы тақырып: жүйедегідей"
+  },
+  "scheduleTimeShort": {
+    "message": "Қараңғы тақырып: $1 – $2"
+  },
+  "change": {
+    "message": "өзгерту"
+  },
+  "settings": {
+    "message": "Баптаулар"
+  },
+  "shortcutHint": {
+    "message": "$1 — сайтта қосу/өшіру"
+  },
+  "otherExtensions": {
+    "message": "Автордың басқа кеңейтімдері"
+  },
+  "optionsTitle": {
+    "message": "Түнгі режим — баптаулар"
+  },
+  "optionsLead": {
+    "message": "Кез келген сайтқа жылдам қараңғы тақырып. Тегін, тіркелусіз, бәрі тек сіздің браузеріңізде сақталады."
+  },
+  "globalTitle": {
+    "message": "Сайттардағы қараңғы тақырып"
+  },
+  "globalHint": {
+    "message": "Басты қосқыш. Төмендегі тізімдегі сайттар бөлек бапталады."
+  },
+  "engineTitle": {
+    "message": "Әдепкі режим"
+  },
+  "engineDynamicHint": {
+    "message": "Сайттың өз түстерін қайта бояйды. Суреттер мен бейнеге тимейді. Көп сайтқа сәйкес келеді."
+  },
+  "engineFilterHint": {
+    "message": "Бетті бір CSS сүзгісімен инверттейді, суреттерді бастапқы түстеріне қайтарады. Жүктеме жоқтың қасы, ауыр беттерге жақсы."
+  },
+  "detectDark": {
+    "message": "Онсыз да қараңғы сайттарға тимеу"
+  },
+  "scheduleTitle": {
+    "message": "Қашан қосу"
+  },
+  "scheduleAlways": {
+    "message": "Әрқашан"
+  },
+  "scheduleSystem": {
+    "message": "Жүйедегідей (Windows, macOS не Linux-та қараңғы тақырып қосулы болса)"
+  },
+  "scheduleTime": {
+    "message": "Уақыт бойынша"
+  },
+  "scheduleFrom": {
+    "message": "басы"
+  },
+  "scheduleTo": {
+    "message": "соңы"
+  },
+  "shortcutsTitle": {
+    "message": "Жылдам пернелер"
+  },
+  "shortcutsEdit": {
+    "message": "Пернелерді өзгерту"
+  },
+  "shortcutNotSet": {
+    "message": "тағайындалмаған"
+  },
+  "sitesTitle": {
+    "message": "Сайттар"
+  },
+  "sitesHint": {
+    "message": "example.com ережесі оның ішкі домендеріне де қолданылады. Сайттарды кеңейтім терезесінен қосып-өшірген ыңғайлы."
+  },
+  "sitesAddLabel": {
+    "message": "Сайт мекенжайы"
+  },
+  "sitesAddPlaceholder": {
+    "message": "example.com"
+  },
+  "sitesAdd": {
+    "message": "Қосу"
+  },
+  "sitesAddInvalid": {
+    "message": "Сайт мекенжайын енгізіңіз, мысалы example.com"
+  },
+  "modeDefault": {
+    "message": "Әдепкі"
+  },
+  "modeOff": {
+    "message": "Қараңғыламау"
+  },
+  "modeOn": {
+    "message": "Әрқашан қараңғылау"
+  },
+  "colSite": {
+    "message": "Сайт"
+  },
+  "colMode": {
+    "message": "Қараңғы тақырып"
+  },
+  "colEngine": {
+    "message": "Режим"
+  },
+  "colActions": {
+    "message": "Әрекеттер"
+  },
+  "remove": {
+    "message": "Жою"
+  },
+  "sitesEmpty": {
+    "message": "Әзірге ереже жоқ — қараңғы тақырып барлық сайтта бірдей жұмыс істейді."
+  },
+  "sitesExport": {
+    "message": "JSON-ға экспорттау"
+  },
+  "sitesImport": {
+    "message": "JSON-нан импорттау"
+  },
+  "sitesClear": {
+    "message": "Тізімді тазалау"
+  },
+  "sitesClearConfirm": {
+    "message": "Сайттарға арналған барлық ережені жою керек пе?"
+  },
+  "sitesCleared": {
+    "message": "Тізім тазаланды."
+  },
+  "exportDone": {
+    "message": "Сақталған ережелер: $1."
+  },
+  "importDone": {
+    "message": "Импорт: қосылды $1, жаңартылды $2, өткізілді $3."
+  },
+  "importFailed": {
+    "message": "Файл сәйкес емес: сайттар тізімі бар JSON қажет."
+  },
+  "aboutTitle": {
+    "message": "Кеңейтім туралы"
+  },
+  "aboutPrivacy": {
+    "message": "Кеңейтім желіге сұрау жібермейді, статистика жинамайды және жарнама көрсетпейді. Баптаулар тек осы браузерде сақталады."
+  },
+  "privacyLink": {
+    "message": "Құпиялылық саясаты"
+  }
+}

@@ -39,10 +39,25 @@ test('elementOverride darkens light backgrounds and dark text only', () => {
   assert.equal(P.elementOverride({ bg: 'rgba(0, 0, 0, 0)', fg: 'rgb(230, 230, 230)', image: 'url("a.png")' }), null);
 });
 
+test('light borders are darkened, dark ones kept', () => {
+  const o = P.elementOverride({ bg: 'rgba(0, 0, 0, 0)', fg: 'rgb(230, 230, 230)', border: 'rgb(229, 231, 235)' });
+  assert.ok(Lib.color.rgbToHsl(parseColor(o.border)).l < 0.35);
+  assert.equal(P.elementOverride({ bg: 'rgba(0, 0, 0, 0)', fg: 'rgb(230, 230, 230)', border: 'rgb(60, 60, 60)' }), null);
+  assert.match(P.overrideRule('9', o), /border-color:rgb\([^)]*\)!important;/);
+});
+
 test('override rule and key', () => {
   const o = { bg: 'rgb(1, 1, 1)', fg: 'rgb(2, 2, 2)' };
-  assert.equal(P.overrideKey(o), 'rgb(1, 1, 1)|rgb(2, 2, 2)|');
-  assert.equal(P.overrideRule('7', o), '[data-nd-c="7"]{background-color:rgb(1, 1, 1)!important;color:rgb(2, 2, 2)!important;fill:rgb(2, 2, 2);}');
+  assert.equal(P.overrideKey(o), 'rgb(1, 1, 1)|rgb(2, 2, 2)|||');
+  assert.equal(P.overrideRule('7', o), '[data-nd-c="7"]{background-color:rgb(1, 1, 1)!important;color:rgb(2, 2, 2)!important;}');
+  assert.equal(P.overrideRule('8', { fill: 'rgb(3, 3, 3)' }), '[data-nd-c="8"]{fill:rgb(3, 3, 3)!important;}');
+});
+
+test('svg shapes: dark fills become light', () => {
+  assert.ok(isLightFg(parseColor(P.svgOverride('rgb(0, 0, 0)').fill)));
+  assert.equal(P.svgOverride('rgb(255, 255, 255)'), null);
+  assert.equal(P.svgOverride('none'), null);
+  assert.equal(P.svgOverride('url("#g")'), null);
 });
 
 test('photo backgrounds vs icons in filter mode', () => {

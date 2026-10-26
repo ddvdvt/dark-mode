@@ -1,0 +1,6 @@
+/* Injected by the browser before the first paint of the top frame, before any script runs:
+   a dark canvas, so a loading page never flashes white. It switches itself off as soon as the
+   content script has decided what to do (it sets data-nd on <html>, also "off"). */
+html:not([data-nd]) {
+  background-color: #1a1a1a !important;
+}
