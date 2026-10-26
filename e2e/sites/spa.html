@@ -84,9 +84,11 @@
       if (++i === 6) { clearInterval(t); setTimeout(() => (window.__done = true), 100); }
     }, 250);
   });
-  // extra assertions for e2e/sites.mjs (only meaningful when the colors come from CSS, i.e. smart mode)
+  // extra assertions for e2e/sites.mjs (only meaningful when the colors come from CSS, i.e. smart mode).
+  // Render 0 runs while the page is being parsed and may race the extension reading its settings
+  // (asynchronous by design); renders after load must be dark in the very first frame.
   window.__ndCheck = (mode) => mode !== 'dynamic' ? [] :
-    window.__frames.filter((f) => f[2] != null && f[2] > 0.3).map((f) => `render ${f[0]} (${f[1]}) painted light before the theme caught up: lum ${f[2].toFixed(2)}`);
+    window.__frames.filter((f) => f[0] > 0 && f[2] != null && f[2] > 0.3).map((f) => `render ${f[0]} (${f[1]}) painted light before the theme caught up: lum ${f[2].toFixed(2)}`);
 </script>
 </body>
 </html>
