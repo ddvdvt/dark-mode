@@ -164,7 +164,12 @@
   function checkDark() {
     try {
       if (!engine || detectedDark || !document.body) return;
-      const m = L.dom.withoutTransitions(() => engine.suspend(measure));
+      const m = L.dom.withoutTransitions(() =>
+        engine.suspend(() => {
+          L.dom.settleTransitions(); // read final colors, not the start of a transition
+          return measure();
+        }),
+      );
       if (engine.setCanvas) engine.setCanvas(m);
       if (L.page.looksDark(m)) {
         detectedDark = true;

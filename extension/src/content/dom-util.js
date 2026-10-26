@@ -85,6 +85,19 @@
     };
   }
 
+  /**
+   * Inside transitionsOff(): finish the transitions our change has caused so far, so that computed
+   * styles read next are the final values, not the start of an animation (measuring a page with our
+   * styles switched off would otherwise read our own dark colors back on `transition: background`).
+   */
+  function settleTransitions() {
+    const before = quietBefore;
+    const html = document.documentElement;
+    if (!before || !html) return;
+    void html.offsetWidth; // full style + layout update: every transition is created now
+    for (const a of document.getAnimations()) if (a instanceof CSSTransition && !before.has(a)) a.cancel();
+  }
+
   /** Run `fn` with transitions off (see transitionsOff). */
   function withoutTransitions(fn) {
     const restore = transitionsOff();
@@ -95,5 +108,5 @@
     }
   }
 
-  NS.dom = { MARK, makeStyle, isOurs, prepend, append, idle, onReady, onLoad, transitionsOff, withoutTransitions };
+  NS.dom = { MARK, makeStyle, isOurs, prepend, append, idle, onReady, onLoad, transitionsOff, settleTransitions, withoutTransitions };
 })(globalThis);
