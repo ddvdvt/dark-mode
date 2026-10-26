@@ -1,0 +1,19 @@
+{
+  "name": "dark-mode",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Тёмный режим: быстрая тёмная тема для любых сайтов",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\"",
+    "test:e2e": "node e2e/smoke.mjs",
+    "perf": "node e2e/perf.mjs",
+    "icons": "node scripts/make-icons.mjs",
+    "zip": "node scripts/pack.mjs",
+    "store:images": "node scripts/store-images.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.64.1"
+  }
+}
