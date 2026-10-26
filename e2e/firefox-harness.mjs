@@ -169,8 +169,19 @@ export async function startFirefox(o) {
     if (full.startsWith('moz-extension:')) {
       // the load event of extension pages is not reported over BiDi: mark the old document, navigate
       // (also to the same URL = reload), then wait for a new, complete document at that URL
-      await page.evaluate(() => ((/** @type {any} */ (window)).__e2eOld = 1)).catch(() => {});
-      page.goto(full).catch(() => {});
+      const current = await page.evaluate(() => {
+        (/** @type {any} */ (window)).__e2eOld = 1;
+        return location.href;
+      }).catch(() => '');
+      if (full.includes('#') && current.split('#')[0] === full.split('#')[0]) {
+        // same document, another #hash: a plain navigation would not load a new document
+        page.evaluate((u) => {
+          location.href = u;
+          location.reload();
+        }, full).catch(() => {});
+      } else {
+        page.goto(full).catch(() => {});
+      }
       await waitFor(page, (u) => location.href === u && document.readyState === 'complete' && !(/** @type {any} */ (window)).__e2eOld, full);
     } else {
       await page.goto(full, { waitUntil: 'load' });
@@ -270,6 +281,40 @@ export async function startFirefox(o) {
     await sleep(100);
   }
 
+  /**
+   * Bring a tab to the front. browsingContext.activate is refused for extension pages over BiDi, so
+   * those activate themselves through the tabs API.
+   * @param {import('puppeteer-core').Page} page
+   */
+  async function front(page) {
+    try {
+      await page.bringToFront();
+    } catch {
+      await page.evaluate(async () => {
+        const tab = await chrome.tabs.getCurrent();
+        if (tab && tab.id != null) await chrome.tabs.update(tab.id, { active: true });
+      });
+    }
+    await sleep(100);
+  }
+
+  /**
+   * Resize the viewport. browsingContext.setViewport is refused for extension pages over BiDi, so
+   * those resize their window (outer size: the viewport ends up a little smaller).
+   * @param {import('puppeteer-core').Page} page @param {number} width @param {number} height
+   */
+  async function resize(page, width, height) {
+    try {
+      await page.setViewport({ width, height });
+    } catch {
+      await page.evaluate(async (width, height) => {
+        const win = await chrome.windows.getCurrent();
+        await chrome.windows.update(win.id, { width, height });
+      }, width, height);
+    }
+    await sleep(200);
+  }
+
   async function errors() {
     let bgErrors = [];
     try {
@@ -290,5 +335,5 @@ export async function startFirefox(o) {
     await rm(work, { recursive: true, force: true, maxRetries: 5, retryDelay: 500 }).catch(() => {});
   }
 
-  return { browser, addon, uuid, base, downloads, open, navigate, waitFor, helperPage, bg, findPage, errors, close, chromeEval, setPref, setColorScheme, setMedium };
+  return { browser, addon, uuid, base, downloads, open, navigate, waitFor, helperPage, bg, findPage, front, resize, errors, close, chromeEval, setPref, setColorScheme, setMedium };
 }
