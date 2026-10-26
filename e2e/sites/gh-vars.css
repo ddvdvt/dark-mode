@@ -1,0 +1,33 @@
+/* Design tokens in their own file (like Primer): defined here, used only in gh.css. */
+:root, [data-color-mode="light"][data-light-theme="light"], [data-color-mode="auto"][data-light-theme="light"] {
+  --bgColor-default: #ffffff;
+  --bgColor-muted: #f6f8fa;
+  --bgColor-neutral-muted: #818b981f;
+  --bgColor-accent-muted: #ddf4ff;
+  --bgColor-accent-emphasis: #0969da;
+  --bgColor-success-emphasis: #1f883d;
+  --bgColor-done-emphasis: #8250df;
+  --fgColor-default: #1f2328;
+  --fgColor-muted: #59636e;
+  --fgColor-accent: #0969da;
+  --fgColor-onEmphasis: #ffffff;
+  --borderColor-default: #d1d9e0;
+  --borderColor-muted: #d1d9e0b3;
+  --shadow-resting-small: 0 1px 1px 0 #1f23280a, 0 1px 2px 0 #1f232808;
+  --color-prettylights-syntax-comment: #59636e;
+  --color-prettylights-syntax-constant: #0550ae;
+  --color-prettylights-syntax-entity: #6639ba;
+  --color-prettylights-syntax-keyword: #cf222e;
+  --color-prettylights-syntax-string: #0a3069;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  [data-color-mode="auto"][data-dark-theme="dark"] {
+    --bgColor-default: #0d1117;
+    --bgColor-muted: #151b23;
+    --fgColor-default: #f0f6fc;
+    --fgColor-muted: #9198a1;
+    --borderColor-default: #3d444d;
+    color-scheme: dark;
+  }
+}

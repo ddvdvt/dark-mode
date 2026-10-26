@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- A "head manager" that keeps <head> in sync with its own list: it removes every <style> it did not
+     create and re-appends its own sheet (moving it after anything inserted later), like some SPA
+     frameworks do on every route change. Must not end in an endless add/remove loop. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Head manager</title>
+<meta name="nd-test" content='{"expect":"dark","perf":true}'>
+<style data-app>
+  body { margin: 0; padding: 20px; background: #ffffff; color: #1a1a1a; font: 16px sans-serif; }
+  .panel { background: #f3f4f6; border: 1px solid #e5e7eb; padding: 12px; border-radius: 8px; }
+</style>
+</head>
+<body>
+<h1>Managed head</h1>
+<div class="panel">The app owns &lt;head&gt; and removes styles it does not know.</div>
+<script>
+  window.__removed = 0;
+  const own = document.querySelector('style[data-app]');
+  let busy = false;
+  new MutationObserver(() => {
+    if (busy) return;
+    busy = true;
+    for (const s of document.head.querySelectorAll('style:not([data-app])')) { s.remove(); window.__removed++; }
+    if (document.head.lastElementChild !== own) document.head.appendChild(own);
+    busy = false;
+  }).observe(document.head, { childList: true });
+  window.__ndCheck = () => (window.__removed > 200 ? ['styles were removed ' + window.__removed + ' times: add/remove loop'] : []);
+</script>
+</body>
+</html>

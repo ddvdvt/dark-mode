@@ -1,0 +1,85 @@
+<!doctype html>
+<!-- Tailwind CSS v4 build output: @layer order statement, theme tokens in oklch shared by text and
+     background utilities, color-mix() for alpha, nested @media variants, :host in the theme layer. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tailwind 4 landing</title>
+<meta name="nd-test" content='{"expect":"dark"}'>
+<style>
+@layer theme, base, components, utilities;
+@layer theme {
+  :root, :host {
+    --font-sans: ui-sans-serif, system-ui, sans-serif;
+    --color-white: #fff;
+    --color-black: #000;
+    --color-gray-50: oklch(98.5% .002 247.839);
+    --color-gray-200: oklch(92.8% .006 264.531);
+    --color-gray-500: oklch(55.1% .027 264.364);
+    --color-gray-600: oklch(44.6% .03 256.802);
+    --color-gray-900: oklch(21% .034 264.665);
+    --color-blue-50: oklch(97% .014 254.604);
+    --color-blue-500: oklch(62.3% .214 259.815);
+    --color-blue-600: oklch(54.6% .245 262.881);
+    --color-blue-700: oklch(48.8% .243 264.376);
+    --color-emerald-50: oklch(97.9% .021 166.113);
+    --color-emerald-700: oklch(50.8% .118 165.612);
+    --radius-lg: .5rem;
+    --spacing: .25rem;
+  }
+}
+@layer base {
+  *, ::after, ::before { box-sizing: border-box; border: 0 solid; margin: 0; padding: 0; }
+  html { font-family: var(--font-sans); line-height: 1.5; }
+}
+@layer utilities {
+  .bg-white { background-color: var(--color-white); }
+  .bg-gray-50 { background-color: var(--color-gray-50); }
+  .bg-blue-50 { background-color: var(--color-blue-50); }
+  .bg-blue-600 { background-color: var(--color-blue-600); }
+  .bg-gray-900 { background-color: var(--color-gray-900); }
+  .bg-emerald-50 { background-color: var(--color-emerald-50); }
+  .bg-black\/50 { background-color: color-mix(in oklab, var(--color-black) 50%, transparent); }
+  .bg-white\/80 { background-color: color-mix(in oklab, var(--color-white) 80%, transparent); }
+  .text-white { color: var(--color-white); }
+  .text-black { color: var(--color-black); }
+  .text-gray-500 { color: var(--color-gray-500); }
+  .text-gray-600 { color: var(--color-gray-600); }
+  .text-gray-900 { color: var(--color-gray-900); }
+  .text-blue-600 { color: var(--color-blue-600); }
+  .text-emerald-700 { color: var(--color-emerald-700); }
+  .border { border-width: 1px; }
+  .border-gray-200 { border-color: var(--color-gray-200); }
+  .border-blue-600 { border-color: var(--color-blue-600); }
+  .rounded-lg { border-radius: var(--radius-lg); }
+  .p-4 { padding: calc(var(--spacing) * 4); } .p-8 { padding: calc(var(--spacing) * 8); }
+  .px-4 { padding-inline: calc(var(--spacing) * 4); } .py-2 { padding-block: calc(var(--spacing) * 2); }
+  .mt-4 { margin-top: calc(var(--spacing) * 4); } .mt-8 { margin-top: calc(var(--spacing) * 8); }
+  .flex { display: flex; } .gap-4 { gap: calc(var(--spacing) * 4); } .grid { display: grid; }
+  .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .inline-block { display: inline-block; }
+  .text-4xl { font-size: 2.25rem; line-height: 1.1; } .text-sm { font-size: .875rem; } .font-bold { font-weight: 700; }
+  .hover\:bg-blue-700 { &:hover { @media (hover: hover) { background-color: var(--color-blue-700); } } }
+  .dark\:bg-gray-900 { @media (prefers-color-scheme: dark) { background-color: var(--color-gray-900); } }
+  .dark\:text-white { @media (prefers-color-scheme: dark) { color: var(--color-white); } }
+  .shadow-sm { box-shadow: 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1); }
+}
+</style>
+</head>
+<body class="bg-white text-gray-900 dark:bg-gray-900 dark:text-white">
+<header class="flex gap-4 p-4 border border-gray-200 bg-white/80"><b>Northwind</b><a class="text-blue-600" href="#">Pricing</a><a class="text-gray-600" href="#">Docs</a></header>
+<main class="p-8">
+  <h1 class="text-4xl font-bold text-gray-900">Ship faster with less code</h1>
+  <p class="mt-4 text-gray-500">A modern starter for teams who care about quality. No credit card required.</p>
+  <p class="mt-4"><a class="inline-block rounded-lg bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700" id="cta" data-nd-hue href="#">Get started</a>
+     <a class="inline-block rounded-lg border border-blue-600 px-4 py-2 text-blue-600" href="#">Live demo</a>
+     <span class="inline-block rounded-lg bg-gray-900 px-4 py-2 text-white">Dark chip</span></p>
+  <div class="grid grid-cols-2 gap-4 mt-8">
+    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 shadow-sm"><b class="text-gray-900">Fast</b><p class="text-sm text-gray-600">Static pages served from the edge.</p></div>
+    <div class="rounded-lg bg-blue-50 p-4"><b class="text-blue-600">Secure</b><p class="text-sm text-gray-600">SSO and audit logs on every plan.</p></div>
+    <div class="rounded-lg bg-emerald-50 p-4 text-emerald-700">All systems operational</div>
+    <div class="rounded-lg bg-black/50 p-4 text-white">Overlay text on a translucent black panel</div>
+  </div>
+</main>
+</body>
+</html>

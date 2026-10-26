@@ -1,0 +1,77 @@
+<!doctype html>
+<!-- Web components: open shadow roots styled with adoptedStyleSheets, a shadow root with its own
+     <style>, declarative shadow DOM, a closed shadow root, nested shadow trees, a component attached
+     after load and document.adoptedStyleSheets. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Components</title>
+<meta name="nd-test" content='{"expect":"dark"}'>
+<style>
+  body { margin: 0; padding: 16px 24px; background: #fff; color: #1f2328; font: 15px/1.5 system-ui, sans-serif; }
+  h1 { font-size: 22px; }
+</style>
+</head>
+<body>
+<h1>Design system demo</h1>
+<x-card><span slot="title">Adopted stylesheet card</span>Body text slotted from the light DOM.</x-card>
+<x-panel></x-panel>
+<p>Badges: <x-badge>new</x-badge> <x-badge>beta</x-badge></p>
+<div id="dsd"><template shadowrootmode="open"><style>p { background: #fafafa; color: #111; padding: 8px 12px; border: 1px solid #ddd; margin: 8px 0; }</style><p>Declarative shadow DOM paragraph</p></template></div>
+<x-closed></x-closed>
+<div class="doc-adopted">Styled by document.adoptedStyleSheets</div>
+<div id="late"></div>
+<script>
+  const cardSheet = new CSSStyleSheet();
+  cardSheet.replaceSync(`
+    :host { display: block; background: #ffffff; color: #1f2328; border: 1px solid #d0d7de; border-radius: 8px; padding: 12px 16px; margin: 8px 0; }
+    .title { font-weight: 600; color: #0b1f3a; }
+    .muted { color: #57606a; margin: 4px 0 8px; }
+    button { background: #f6f8fa; color: #24292f; border: 1px solid #d0d7de; border-radius: 6px; padding: 4px 12px; }
+    button.primary { background: #1f883d; color: #ffffff; border-color: transparent; }`);
+  class XCard extends HTMLElement {
+    constructor() {
+      super();
+      const r = this.attachShadow({ mode: 'open' });
+      r.adoptedStyleSheets = [cardSheet];
+      r.innerHTML = '<div class="title"><slot name="title">Card</slot></div><div class="muted"><slot></slot></div><button>Cancel</button> <button class="primary" data-nd-hue>Save</button>';
+    }
+  }
+  class XBadge extends HTMLElement {
+    connectedCallback() {
+      if (this.shadowRoot) return;
+      const r = this.attachShadow({ mode: 'open' });
+      r.innerHTML = '<style>span { background: #ddf4ff; color: #0550ae; padding: 2px 8px; border-radius: 10px; font-size: 12px; }</style><span><slot></slot></span>';
+    }
+  }
+  class XPanel extends HTMLElement {
+    constructor() {
+      super();
+      const r = this.attachShadow({ mode: 'open' });
+      const s = new CSSStyleSheet();
+      s.replaceSync('section { background: #f6f8fa; color: #1f2328; padding: 8px 12px; border-radius: 8px; } h2 { font-size: 16px; color: #24292f; margin: 0; }');
+      r.adoptedStyleSheets = [s];
+      r.innerHTML = '<section><h2>Panel with a nested component</h2><x-card><span slot="title">Nested card</span>Inside another shadow root.</x-card></section>';
+    }
+  }
+  class XClosed extends HTMLElement {
+    constructor() {
+      super();
+      const r = this.attachShadow({ mode: 'closed' });
+      r.innerHTML = '<style>div { background: #fff7e6; color: #3d2a00; padding: 8px 12px; margin: 8px 0; border: 1px solid #f0d8a8; }</style><div>Closed shadow root content</div>';
+    }
+  }
+  customElements.define('x-card', XCard);
+  customElements.define('x-badge', XBadge);
+  customElements.define('x-panel', XPanel);
+  customElements.define('x-closed', XClosed);
+  const doc = new CSSStyleSheet();
+  doc.replaceSync('.doc-adopted { background: #fffbe6; color: #3a2e00; padding: 8px 12px; border: 1px solid #f5e1a4; }');
+  document.adoptedStyleSheets = [...document.adoptedStyleSheets, doc];
+  window.addEventListener('load', () => setTimeout(() => {
+    document.getElementById('late').innerHTML = '<x-card><span slot="title">Attached after load</span>This component appeared 300 ms after load.</x-card>';
+    setTimeout(() => (window.__done = true), 50);
+  }, 300));
+</script>
+</body>
+</html>

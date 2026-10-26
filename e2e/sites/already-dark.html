@@ -1,0 +1,25 @@
+<!doctype html>
+<!-- Already dark app: transparent <html>/<body>, the dark background is painted on an app-shell
+     wrapper (like many SPAs), plus a dark header and cards. Must be left alone. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dark app</title>
+<meta name="nd-test" content='{"expect":"already-dark"}'>
+<style>
+  body { margin: 0; font: 15px system-ui, sans-serif; }
+  #app { min-height: 100vh; background: #121212; color: #e8eaed; }
+  header { background: #1f1f1f; padding: 12px 20px; border-bottom: 1px solid #333; }
+  .card { background: #1e1e1e; border: 1px solid #2c2c2c; border-radius: 8px; padding: 16px; margin: 16px 20px; }
+  a { color: #8ab4f8; } .muted { color: #9aa0a6; }
+  .btn { background: #8ab4f8; color: #202124; border: 0; border-radius: 4px; padding: 6px 14px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header><b>Night app</b></header>
+  <div class="card"><h2>Already dark</h2><p class="muted">This site has its own dark design. <a href="#">Link</a></p><button class="btn">Action</button></div>
+  <div class="card"><p>Another card with plain text.</p></div>
+</div>
+</body>
+</html>

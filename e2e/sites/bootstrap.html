@@ -1,0 +1,77 @@
+<!doctype html>
+<!-- Bootstrap 5.3-like page: --bs-* variables, "R,G,B" channel variables used as
+     rgba(var(--bs-x-rgb), var(--bs-bg-opacity)), component-level variables, !important utilities. -->
+<html lang="en" data-bs-theme="light">
+<head>
+<meta charset="utf-8">
+<title>Bootstrap admin</title>
+<meta name="nd-test" content='{"expect":"dark"}'>
+<style>
+:root, [data-bs-theme=light] {
+  --bs-white: #fff; --bs-white-rgb: 255, 255, 255; --bs-black-rgb: 0, 0, 0;
+  --bs-primary: #0d6efd; --bs-primary-rgb: 13, 110, 253; --bs-light-rgb: 248, 249, 250; --bs-dark-rgb: 33, 37, 41;
+  --bs-warning-rgb: 255, 193, 7; --bs-success-rgb: 25, 135, 84;
+  --bs-body-color: #212529; --bs-body-color-rgb: 33, 37, 41; --bs-body-bg: #fff; --bs-body-bg-rgb: 255, 255, 255;
+  --bs-emphasis-color: #000; --bs-secondary-color: rgba(33, 37, 41, 0.75); --bs-secondary-bg: #e9ecef; --bs-tertiary-bg: #f8f9fa;
+  --bs-border-width: 1px; --bs-border-color: #dee2e6; --bs-border-color-translucent: rgba(0, 0, 0, 0.175); --bs-border-radius: .375rem;
+  --bs-link-color: #0d6efd; --bs-link-color-rgb: 13, 110, 253;
+  --bs-success-text-emphasis: #0a3622; --bs-success-bg-subtle: #d1e7dd; --bs-success-border-subtle: #a3cfbb;
+  --bs-body-font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+*, ::after, ::before { box-sizing: border-box; }
+body { margin: 0; font-family: var(--bs-body-font-family); font-size: 1rem; line-height: 1.5; color: var(--bs-body-color); background-color: var(--bs-body-bg); }
+a { color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1)); }
+.container { max-width: 900px; margin: 0 auto; padding: 0 12px; }
+.navbar { display: flex; gap: 16px; align-items: center; padding: 8px 16px; }
+.navbar-brand { font-size: 1.25rem; color: inherit; text-decoration: none; }
+.nav-link { color: rgba(var(--bs-white-rgb), .75); text-decoration: none; }
+.bg-primary { --bs-bg-opacity: 1; background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)) !important; }
+.bg-light { --bs-bg-opacity: 1; background-color: rgba(var(--bs-light-rgb), var(--bs-bg-opacity)) !important; }
+.bg-white { --bs-bg-opacity: 1; background-color: rgba(var(--bs-white-rgb), var(--bs-bg-opacity)) !important; }
+.text-white { --bs-text-opacity: 1; color: rgba(var(--bs-white-rgb), var(--bs-text-opacity)) !important; }
+.text-dark { --bs-text-opacity: 1; color: rgba(var(--bs-dark-rgb), var(--bs-text-opacity)) !important; }
+.text-body-secondary { --bs-text-opacity: 1; color: var(--bs-secondary-color) !important; }
+.text-bg-warning { color: #000 !important; background-color: RGBA(var(--bs-warning-rgb), var(--bs-bg-opacity, 1)) !important; }
+.border { border: var(--bs-border-width) solid var(--bs-border-color) !important; }
+.rounded { border-radius: var(--bs-border-radius) !important; }
+.p-3 { padding: 1rem !important; } .my-3 { margin: 1rem 0 !important; }
+.btn { --bs-btn-padding-x: .75rem; --bs-btn-padding-y: .375rem; --bs-btn-color: var(--bs-body-color); --bs-btn-bg: transparent; --bs-btn-border-color: transparent;
+  display: inline-block; padding: var(--bs-btn-padding-y) var(--bs-btn-padding-x); color: var(--bs-btn-color); background-color: var(--bs-btn-bg);
+  border: var(--bs-border-width) solid var(--bs-btn-border-color); border-radius: var(--bs-border-radius); text-decoration: none; font-size: 1rem; }
+.btn-primary { --bs-btn-color: #fff; --bs-btn-bg: #0d6efd; --bs-btn-border-color: #0d6efd; --bs-btn-hover-bg: #0b5ed7; }
+.btn-warning { --bs-btn-color: #000; --bs-btn-bg: #ffc107; --bs-btn-border-color: #ffc107; }
+.btn-outline-secondary { --bs-btn-color: #6c757d; --bs-btn-border-color: #6c757d; }
+.btn-light { --bs-btn-color: #000; --bs-btn-bg: #f8f9fa; --bs-btn-border-color: #f8f9fa; }
+.badge { display: inline-block; padding: .35em .65em; font-size: .75em; font-weight: 700; color: #fff; border-radius: .375rem; }
+.card { --bs-card-bg: var(--bs-body-bg); --bs-card-border-color: var(--bs-border-color-translucent); --bs-card-cap-bg: rgba(var(--bs-body-color-rgb), 0.03);
+  background-color: var(--bs-card-bg); border: 1px solid var(--bs-card-border-color); border-radius: .375rem; margin: 1rem 0; }
+.card-header { padding: .5rem 1rem; background-color: var(--bs-card-cap-bg); border-bottom: 1px solid var(--bs-card-border-color); }
+.card-body { padding: 1rem; }
+.alert { --bs-alert-bg: transparent; --bs-alert-color: inherit; --bs-alert-border-color: transparent; padding: 1rem; color: var(--bs-alert-color); background-color: var(--bs-alert-bg); border: 1px solid var(--bs-alert-border-color); border-radius: .375rem; }
+.alert-success { --bs-alert-color: var(--bs-success-text-emphasis); --bs-alert-bg: var(--bs-success-bg-subtle); --bs-alert-border-color: var(--bs-success-border-subtle); }
+.list-group { --bs-list-group-color: var(--bs-body-color); --bs-list-group-bg: var(--bs-body-bg); --bs-list-group-active-color: #fff; --bs-list-group-active-bg: #0d6efd; padding: 0; margin: 0; list-style: none; }
+.list-group-item { padding: .5rem 1rem; color: var(--bs-list-group-color); background-color: var(--bs-list-group-bg); border: 1px solid var(--bs-border-color); }
+.list-group-item.active { color: var(--bs-list-group-active-color); background-color: var(--bs-list-group-active-bg); }
+.table { --bs-table-color: var(--bs-emphasis-color); --bs-table-bg: var(--bs-body-bg); --bs-table-striped-bg: rgba(var(--bs-emphasis-color-rgb, 0, 0, 0), 0.05); width: 100%; border-collapse: collapse; }
+.table > :not(caption) > * > * { padding: .5rem; color: var(--bs-table-color); background-color: var(--bs-table-bg); border-bottom: 1px solid var(--bs-border-color); box-shadow: inset 0 0 0 9999px var(--bs-table-bg-state, var(--bs-table-bg-type, transparent)); }
+.table-striped > tbody > tr:nth-of-type(odd) > * { --bs-table-bg-type: var(--bs-table-striped-bg); }
+.form-control { display: block; width: 100%; padding: .375rem .75rem; color: var(--bs-body-color); background-color: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: .375rem; }
+.form-check-input { width: 1em; height: 1em; appearance: none; background-color: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: .25em; vertical-align: middle; }
+.form-check-input:checked { background-color: #0d6efd; border-color: #0d6efd; }
+</style>
+</head>
+<body>
+<nav class="navbar bg-primary" data-nd-hue><a class="navbar-brand text-white" href="#">Admin</a><a class="nav-link" href="#">Users</a><a class="nav-link" href="#">Reports</a></nav>
+<div class="container">
+  <div class="bg-light border rounded p-3 my-3"><span class="text-dark">Light panel with dark text (.bg-light .text-dark)</span> <span class="badge text-bg-warning">beta</span></div>
+  <p><a class="btn btn-primary" data-nd-hue href="#">Save</a> <a class="btn btn-warning" href="#">Warn</a> <a class="btn btn-outline-secondary" href="#">Cancel</a> <a class="btn btn-light" href="#">Light</a> <a href="#">Plain link</a></p>
+  <div class="alert alert-success">Settings saved successfully.</div>
+  <div class="card"><div class="card-header">Users</div><div class="card-body">
+    <ul class="list-group"><li class="list-group-item active">Anna (you)</li><li class="list-group-item">Boris</li><li class="list-group-item">Vera</li></ul>
+  </div></div>
+  <table class="table table-striped"><thead><tr><th>#</th><th>Name</th><th>Role</th></tr></thead>
+    <tbody><tr><td>1</td><td>Anna</td><td>Owner</td></tr><tr><td>2</td><td>Boris</td><td>Editor</td></tr><tr><td>3</td><td>Vera</td><td>Viewer</td></tr></tbody></table>
+  <div class="bg-white border rounded p-3"><label>Email <input class="form-control" placeholder="name@example.com"></label> <input class="form-check-input" type="checkbox" checked> Remember <span class="text-body-secondary">(secondary text)</span></div>
+</div>
+</body>
+</html>

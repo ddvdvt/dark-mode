@@ -1,0 +1,37 @@
+<!doctype html>
+<!-- GitHub-like repository page: tokens in a separate stylesheet (used only by the next one),
+     prefers-color-scheme aware site, color-scheme, syntax highlighting, octicons with currentColor. -->
+<html lang="en" data-color-mode="auto" data-light-theme="light" data-dark-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>octo/hello-world</title>
+<meta name="nd-test" content='{"expect":"dark"}'>
+<link rel="stylesheet" href="/sites/gh-vars.css">
+<link rel="stylesheet" href="/sites/gh.css">
+</head>
+<body>
+<header class="Header">
+  <svg class="octicon" data-nd-icon width="32" height="32" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0Zm0 3a5 5 0 1 1 0 10A5 5 0 0 1 8 3Z"/></svg>
+  <a href="#">Pull requests</a><a href="#">Issues</a><a href="#">Marketplace</a>
+</header>
+<div class="container">
+  <h1><a href="#">octo</a> / <b>hello-world</b> <span class="Label">Public</span></h1>
+  <nav class="UnderlineNav"><a class="UnderlineNav-item selected" href="#">Code</a><a class="UnderlineNav-item" href="#">Issues <span class="Counter">12</span></a><a class="UnderlineNav-item" href="#">Pull requests <span class="Counter">3</span></a></nav>
+  <p><a class="btn" href="#">Watch</a> <a class="btn btn-primary" id="primary" data-nd-hue href="#">Code</a> <span class="State State--open" data-nd-hue>Open</span> <span class="State State--merged">Merged</span></p>
+  <div class="flash">Your recent push to <code>main</code> was successful.</div>
+  <div class="Box">
+    <div class="Box-header"><img class="avatar" src="/img/lake.png" width="20" height="20" alt=""> <b>octocat</b> <span class="color-fg-muted">Update README.md · 2 days ago</span></div>
+    <div class="Box-row"><svg class="octicon" data-nd-icon width="16" height="16" viewBox="0 0 16 16"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Z"/></svg> README.md <span class="color-fg-muted">Initial commit</span></div>
+    <div class="Box-row"><svg class="octicon" width="16" height="16" viewBox="0 0 16 16"><path d="M0 2.75C0 1.784.784 1 1.75 1H5c.55 0 1.07.26 1.4.7l.9 1.2a.25.25 0 0 0 .2.1h6.75c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25Z"/></svg> src <span class="color-fg-muted">Add parser</span></div>
+  </div>
+  <article class="markdown-body">
+    <h2>hello-world</h2>
+    <p>Run <code>npm install</code> and then:</p>
+    <div class="highlight"><pre><span class="pl-c">// entry point</span>
+<span class="pl-k">import</span> { <span class="pl-c1">createServer</span> } <span class="pl-k">from</span> <span class="pl-s">'node:http'</span>;
+<span class="pl-k">const</span> <span class="pl-c1">port</span> <span class="pl-k">=</span> <span class="pl-c1">3000</span>;
+<span class="pl-en">createServer</span>((<span class="pl-smi">req</span>, <span class="pl-smi">res</span>) <span class="pl-k">=&gt;</span> res.<span class="pl-en">end</span>(<span class="pl-s">'hi'</span>)).<span class="pl-en">listen</span>(port);</pre></div>
+  </article>
+</div>
+</body>
+</html>

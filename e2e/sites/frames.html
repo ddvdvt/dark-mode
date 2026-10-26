@@ -1,0 +1,31 @@
+<!doctype html>
+<!-- Frames: same-origin, cross-origin, about:blank written with document.write, about:blank filled
+     through the DOM, and srcdoc. Every frame has a light theme of its own. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Frames</title>
+<meta name="nd-test" content='{"expect":"dark","frames":true}'>
+<style>
+  body { margin: 0; padding: 16px; background: #fff; color: #222; font: 15px sans-serif; }
+  iframe { display: block; width: 440px; height: 70px; border: 1px solid #ccc; margin: 8px 0; }
+</style>
+</head>
+<body>
+<h1>Embedded frames</h1>
+<iframe id="same" src="/sites/frame-inner.html" title="same-origin"></iframe>
+<iframe id="cross" src="/x-origin/sites/frame-inner.html" title="cross-origin"></iframe>
+<iframe id="written" title="about:blank written"></iframe>
+<iframe id="dom" title="about:blank DOM"></iframe>
+<iframe id="srcdoc" title="srcdoc" srcdoc="<!doctype html><style>body{background:#fffbe6;color:#333;font:14px sans-serif;margin:8px}</style><p>srcdoc frame text</p>"></iframe>
+<script>
+  const w = document.getElementById('written').contentDocument;
+  w.open();
+  w.write('<!doctype html><html><head><style>body{background:#ffffff;color:#222222;font:14px sans-serif;margin:8px}</style></head><body><p>about:blank written by the parent with document.write</p></body></html>');
+  w.close();
+  const d = document.getElementById('dom').contentDocument;
+  d.body.style.cssText = 'background:#f7f7f7;color:#202020;font:14px sans-serif;margin:8px';
+  d.body.innerHTML = '<p>about:blank filled through the DOM</p>';
+</script>
+</body>
+</html>

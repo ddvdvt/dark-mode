@@ -1,0 +1,29 @@
+<!doctype html>
+<!-- Site that supports both schemes: <meta name="color-scheme" content="dark light">, light-dark(),
+     system colors (Canvas/CanvasText/LinkText), prefers-color-scheme variables. With a light system
+     theme it is light and gets darkened; with a dark system theme it is already dark. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="dark light">
+<title>Both schemes</title>
+<meta name="nd-test" content='{"expect":"dark","darkSystem":"already-dark"}'>
+<style>
+  :root { color-scheme: light dark; --card: #f2f4f7; --ink: #101828; --accent: #175cd3; }
+  @media (prefers-color-scheme: dark) { :root { --card: #1d2939; --ink: #f2f4f7; --accent: #84adff; } }
+  body { margin: 0; padding: 20px; background: light-dark(#ffffff, #0c111d); color: light-dark(#344054, #cecfd2); font: 16px system-ui, sans-serif; }
+  .card { background: var(--card); color: var(--ink); padding: 14px; border-radius: 8px; margin: 12px 0; }
+  .sys { background: Canvas; color: CanvasText; border: 1px solid GrayText; padding: 10px; }
+  .sys a { color: LinkText; }
+  .mix { background: color-mix(in srgb, var(--accent) 12%, Canvas); color: var(--accent); padding: 10px; border-radius: 8px; }
+  .ld-border { border: 2px solid light-dark(#d0d5dd, #333741); padding: 8px; }
+</style>
+</head>
+<body>
+<h1>Supports light and dark</h1>
+<div class="card">Card painted with variables switched by prefers-color-scheme.</div>
+<div class="sys">System colors: Canvas / CanvasText, and a <a href="#">LinkText link</a>.</div>
+<p class="mix">color-mix() of the accent and Canvas</p>
+<p class="ld-border">Border with light-dark()</p>
+</body>
+</html>

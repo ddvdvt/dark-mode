@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- Continuously mutating page: a chat that appends a message every 40 ms (with inline colors),
+     rewrites "time ago" labels every 100 ms, toggles a typing indicator class and trims old messages. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Live chat</title>
+<meta name="nd-test" content='{"expect":"dark","live":true,"perf":true}'>
+<style>
+  body { margin: 0; background: #e5ddd5; color: #111b21; font: 14px/1.4 "Segoe UI", sans-serif; }
+  header { background: #f0f2f5; padding: 10px 16px; border-bottom: 1px solid #d1d7db; }
+  #log { height: 560px; overflow: auto; padding: 8px 16px; }
+  .msg { max-width: 60%; margin: 4px 0; padding: 6px 10px; border-radius: 8px; background: #fff; box-shadow: 0 1px .5px rgba(11,20,26,.13); }
+  .msg.out { margin-left: auto; background: #d9fdd3; }
+  .msg .who { font-weight: 600; font-size: 12px; }
+  .msg .ago { color: #667781; font-size: 11px; float: right; margin-left: 8px; }
+  .typing { color: #667781; font-style: italic; } .typing.on { color: #008069; }
+</style>
+</head>
+<body>
+<header><b>Team chat</b> <span class="typing" id="typing">typing…</span></header>
+<div id="log" data-nd-live></div>
+<script>
+  const log = document.getElementById('log');
+  const colors = ['#e542a3', '#1f7aec', '#c75f00', '#06a37f', '#7f66ff'];
+  let n = 0;
+  function add() {
+    const d = document.createElement('div');
+    d.className = 'msg' + (n % 3 === 0 ? ' out' : '');
+    d.dataset.t = Date.now();
+    d.innerHTML = '<div class="who" style="color:' + colors[n % colors.length] + '">User ' + (n % 7) + '</div>Message number ' + n + ' <span class="ago">now</span>';
+    log.appendChild(d);
+    n++;
+    if (log.children.length > 120) log.firstElementChild.remove();
+    log.scrollTop = log.scrollHeight;
+  }
+  for (let i = 0; i < 30; i++) add();
+  setInterval(add, 40);
+  setInterval(() => {
+    for (const s of log.querySelectorAll('.ago')) s.textContent = Math.round((Date.now() - s.parentElement.dataset.t) / 100) / 10 + 's';
+    document.getElementById('typing').classList.toggle('on');
+  }, 100);
+  window.__done = true;
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!doctype html>
+<!-- PDF.js-like viewer: light toolbar, grey viewer background, pages = <canvas> with a transparent
+     text layer on top (color: transparent spans), sidebar thumbnails, a find bar. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>report.pdf</title>
+<meta name="nd-test" content='{"expect":"dark"}'>
+<style>
+  :root { --main-color: rgba(12,12,13,1); --body-bg-color: rgba(212,212,215,1); --toolbar-bg-color: rgba(249,249,250,1); --toolbar-border-color: rgba(204,204,204,1); --button-hover-color: rgba(221,222,223,1); --field-bg-color: rgba(255,255,255,1); --field-color: rgba(6,6,6,1); --sidebar-bg: rgba(237,237,240,1); }
+  html, body { height: 100%; margin: 0; }
+  body { background-color: var(--body-bg-color); color: var(--main-color); font: 13px sans-serif; }
+  #toolbar { display: flex; gap: 8px; align-items: center; height: 32px; padding: 0 8px; background-color: var(--toolbar-bg-color); border-bottom: 1px solid var(--toolbar-border-color); box-shadow: 0 1px 0 var(--toolbar-border-color); }
+  #toolbar input { width: 40px; background-color: var(--field-bg-color); color: var(--field-color); border: 1px solid var(--toolbar-border-color); }
+  .toolbarButton { background: none; border: 0; color: var(--main-color); padding: 2px 6px; border-radius: 2px; }
+  .toolbarButton:hover { background-color: var(--button-hover-color); }
+  #outer { display: flex; height: calc(100% - 33px); }
+  #sidebar { width: 140px; background-color: var(--sidebar-bg); padding: 8px; }
+  .thumb { width: 100px; height: 130px; margin: 8px auto; border: 1px solid #ccc; }
+  #viewer { flex: 1; overflow: auto; padding: 12px; }
+  .page { position: relative; width: 420px; height: 540px; margin: 0 auto 12px; border: 9px solid transparent; background-clip: content-box; background-color: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.1); }
+  .page canvas { display: block; }
+  .textLayer { position: absolute; inset: 0; line-height: 1; }
+  .textLayer span { position: absolute; color: transparent; white-space: pre; font-size: 13px; }
+  .textLayer ::selection { background: rgba(0,0,255,.25); }
+</style>
+</head>
+<body>
+<div id="toolbar"><button class="toolbarButton">☰</button><button class="toolbarButton">‹</button><input value="1"> of 2 <button class="toolbarButton">›</button><span style="flex:1"></span><button class="toolbarButton">Download</button></div>
+<div id="outer">
+  <div id="sidebar"><canvas class="thumb" id="t1" width="100" height="130"></canvas></div>
+  <div id="viewer">
+    <div class="page"><canvas id="p1" width="420" height="540"></canvas><div class="textLayer"><span style="left:30px;top:40px">Annual report 2025</span><span style="left:30px;top:80px">Revenue grew in every region.</span></div></div>
+  </div>
+</div>
+<script>
+  for (const [id, w, h, s] of [['p1', 420, 540, 1], ['t1', 100, 130, 0.24]]) {
+    const c = document.getElementById(id).getContext('2d');
+    c.scale(s, s);
+    c.fillStyle = '#fff'; c.fillRect(0, 0, 420, 540);
+    c.fillStyle = '#000'; c.font = 'bold 20px serif'; c.fillText('Annual report 2025', 30, 56);
+    c.font = '13px serif';
+    for (let i = 0; i < 20; i++) c.fillText('Revenue grew in every region; line ' + (i + 1) + '.', 30, 96 + i * 20);
+  }
+</script>
+</body>
+</html>

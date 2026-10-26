@@ -8,6 +8,17 @@ import { PHOTO, MOUNTAINS, LAKE } from './png.mjs';
 import { heavyPage } from './heavy.mjs';
 
 const FIX = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
+const SITES = join(dirname(fileURLToPath(import.meta.url)), 'sites');
+const TYPES = { html: 'text/html; charset=utf-8', css: 'text/css', js: 'text/javascript', svg: 'image/svg+xml', png: 'image/png' };
+
+/** Synthetic site fixtures (e2e/sites), served on both origins. */
+async function serveSite(name, res) {
+  const file = name.slice(6);
+  if (!/^[\w.-]+$/.test(file)) throw new Error('bad');
+  const body = await readFile(join(SITES, file));
+  res.writeHead(200, { 'content-type': TYPES[file.split('.').pop()] || 'application/octet-stream', 'cache-control': 'no-store' });
+  res.end(body);
+}
 const STORE_FIX = join(dirname(fileURLToPath(import.meta.url)), '..', 'store', 'fixtures');
 const IMAGES = { 'photo.png': PHOTO, 'img/mountains.png': MOUNTAINS, 'img/lake.png': LAKE };
 
@@ -22,7 +33,12 @@ function listen(handler) {
 export async function startServers() {
   const other = await listen(async (req, res) => {
     const name = (req.url || '').split('?')[0].replace(/^\/+/, '');
-    if (name === 'remote.css') {
+    if (name.startsWith('sites/')) {
+      await serveSite(name, res);
+    } else if (IMAGES[name]) {
+      res.writeHead(200, { 'content-type': 'image/png' });
+      res.end(IMAGES[name]);
+    } else if (name === 'remote.css') {
       res.writeHead(200, { 'content-type': 'text/css' });
       res.end(await readFile(join(FIX, 'remote.css')));
     } else {
@@ -41,6 +57,8 @@ export async function startServers() {
     } else if (name.startsWith('brand/')) {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
       res.end(`<!doctype html><title>brand ${name}</title>`);
+    } else if (name.startsWith('sites/')) {
+      await serveSite(name, res);
     } else if (name.startsWith('x-origin/')) {
       res.writeHead(302, { location: `http://localhost:${otherPort}/${name.slice(9)}` });
       res.end();

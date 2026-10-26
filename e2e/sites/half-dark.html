@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- Half-dark site: a dark header and a dark hero band over a light body. Must be darkened (the body
+     is light), the dark parts must stay dark and readable. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Agency</title>
+<meta name="nd-test" content='{"expect":"dark"}'>
+<style>
+  body { margin: 0; background: #fff; color: #333; font: 16px/1.6 "Helvetica Neue", Arial, sans-serif; }
+  header { background: #0b0c10; color: #c5c6c7; padding: 14px 24px; display: flex; gap: 20px; }
+  header a { color: #66fcf1; text-decoration: none; }
+  .band { background: #1f2833; color: #fff; padding: 40px 24px; }
+  .band p { color: #c5c6c7; }
+  .band .cta { background: #45a29e; color: #0b0c10; padding: 8px 16px; border-radius: 4px; text-decoration: none; }
+  main { padding: 24px; max-width: 760px; }
+  .service { border: 1px solid #e1e1e1; background: #fafafa; padding: 14px; margin: 12px 0; border-radius: 6px; }
+  .service h3 { color: #1f2833; margin: 0 0 6px; }
+  footer { background: #0b0c10; color: #8a8f98; padding: 20px 24px; }
+</style>
+</head>
+<body>
+<header><b>NORTH</b><a href="#">Work</a><a href="#">Services</a><a href="#">Contact</a></header>
+<section class="band"><h1>We build calm software</h1><p>Design, engineering and research for small teams.</p><a class="cta" href="#">Start a project</a></section>
+<main>
+  <div class="service"><h3>Design</h3><p>Interfaces that get out of the way.</p></div>
+  <div class="service"><h3>Engineering</h3><p>Fast, accessible websites and apps.</p></div>
+  <p>Light body text continues here with a <a href="#">regular link</a>.</p>
+</main>
+<footer>© North studio</footer>
+</body>
+</html>

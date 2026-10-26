@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- Forum: an old phpBB-style board (body bgcolor/text/link/vlink attributes, <table bgcolor>,
+     <font color>, bordercolor) and a modern Habr/VK-like comment tree with inline style="" colors. -->
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Форум</title>
+<meta name="nd-test" content='{"expect":"dark"}'>
+<style>
+  body { font-family: Verdana, Arial, sans-serif; font-size: 12px; margin: 8px; }
+  .maintitle { font-size: 20px; font-weight: bold; }
+  td.row1 { background-color: #efefef; } td.row2 { background-color: #dee3e7; }
+  th { background-color: #006699; color: #ffa34f; font-size: 11px; height: 25px; }
+  .comments { font: 15px/1.5 -apple-system, "Segoe UI", sans-serif; max-width: 760px; margin-top: 24px; }
+  .comment { padding: 8px 0 8px 14px; border-left: 2px solid #e3e8ef; margin-left: 20px; }
+  .comment .user { font-weight: 600; color: #333; }
+  .comment .body { color: #222; margin: 4px 0; }
+  .comment .actions a { color: #929ca5; font-size: 13px; margin-right: 10px; text-decoration: none; }
+  .votes { font-weight: 700; }
+  blockquote { background: #f7f7f7; border-left: 3px solid #ccc; margin: 4px 0; padding: 4px 10px; }
+</style>
+</head>
+<body bgcolor="#E5E5E5" text="#000000" link="#006699" vlink="#5493B4" alink="#FF0000">
+<table width="100%" cellspacing="0" cellpadding="10" border="0" align="center" data-nd-texture style="background: #d0d4d8 url(/photo.png) repeat; background-size: 24px 12px"><tr><td bgcolor="#FFFFFF">
+  <span class="maintitle">Форум любителей ретро-техники</span><br>
+  <font size="2">Последний визит: вчера. <a href="#">Поиск</a> | <a href="#">Пользователи</a> | <a href="#">Профиль</a></font>
+  <table width="100%" cellpadding="4" cellspacing="1" border="1" bordercolor="#CCCCCC" bgcolor="#A9B8C2">
+    <tr><th>Форум</th><th>Тем</th><th>Последнее сообщение</th></tr>
+    <tr><td class="row1"><a href="#"><b>Компьютеры</b></a><br><font color="#444444" size="1">ZX Spectrum, БК-0010, Агат</font></td><td class="row2" align="center">1 204</td><td class="row1"><font color="#006600">Сегодня 12:03</font></td></tr>
+    <tr><td class="row1"><a href="#"><b>Радиолюбители</b></a><br><font color="#444444" size="1">Схемы и ремонт</font></td><td class="row2" align="center">877</td><td class="row1"><font color="#990000">Вчера</font></td></tr>
+    <tr bgcolor="#FFFFCC"><td colspan="3"><font color="#000080"><b>Объявление:</b></font> правила форума обновлены. <a href="#">Читать</a></td></tr>
+  </table>
+  <hr color="#cccccc" size="1">
+  <div class="comments">
+    <div class="comment"><span class="user">ivanov</span> <span style="color:#7b8790;font-size:13px">2 часа назад</span>
+      <div class="body">Отличная статья, спасибо! <a href="#">Ссылка на исходник</a>.</div>
+      <div class="actions"><a href="#">Ответить</a><span class="votes" style="color:#7bb33f">+12</span></div>
+      <div class="comment" style="background-color:#fff8e1"><span class="user">petrov</span> <span style="color:#7b8790;font-size:13px">1 час назад</span>
+        <div class="body"><blockquote>Отличная статья</blockquote>Согласен, но есть нюанс с питанием.</div>
+        <div class="actions"><a href="#">Ответить</a><span class="votes" style="color:#d04e4e">−3</span></div>
+        <div class="comment"><span class="user">sidorov</span> <span style="color:#7b8790;font-size:13px">только что</span>
+          <div class="body" style="color:#555">Какой нюанс? <span style="background:#ffeb3b">выделенный текст</span></div></div>
+      </div>
+    </div>
+  </div>
+</td></tr></table>
+</body>
+</html>

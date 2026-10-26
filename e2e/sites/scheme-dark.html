@@ -1,0 +1,16 @@
+<!doctype html>
+<!-- A page that is dark only through <meta name="color-scheme" content="dark"> (no author colors):
+     the browser paints a dark canvas and light text. It is already dark. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="dark">
+<title>Plain dark</title>
+<meta name="nd-test" content='{"expect":"already-dark"}'>
+</head>
+<body>
+<h1>Plain document</h1>
+<p>No author colors at all: the dark color scheme comes from the meta tag. <a href="#">A link</a>.</p>
+<ul><li>One</li><li>Two</li></ul>
+</body>
+</html>

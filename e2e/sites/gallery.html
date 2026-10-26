@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- Instagram-like profile: image grid with srcset and <picture>, gradient story rings around
+     avatars, hover overlays, a colored heart icon and a brand-blue follow button. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Profile</title>
+<meta name="nd-test" content='{"expect":"dark"}'>
+<style>
+  body { margin: 0; background: #fff; color: #000; font: 14px -apple-system, "Segoe UI", sans-serif; }
+  nav { display: flex; justify-content: space-between; padding: 10px 20px; border-bottom: 1px solid #dbdbdb; background: #fff; }
+  .profile { display: flex; gap: 40px; align-items: center; padding: 20px 60px; }
+  .ring { padding: 3px; border-radius: 50%; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+  .ring img { display: block; border-radius: 50%; border: 3px solid #fff; width: 86px; height: 86px; object-fit: cover; }
+  .btn-follow { background: #0095f6; color: #fff; border: 0; border-radius: 8px; padding: 6px 16px; font-weight: 600; }
+  .btn-msg { background: #efefef; color: #000; border: 0; border-radius: 8px; padding: 6px 16px; font-weight: 600; }
+  .stats span { margin-right: 20px; } .stats b { font-weight: 600; }
+  .muted { color: #737373; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 0 60px; }
+  .tile { position: relative; aspect-ratio: 1; overflow: hidden; }
+  .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .overlay { position: absolute; inset: 0; background: rgba(0,0,0,.3); color: #fff; display: none; align-items: center; justify-content: center; }
+  .tile:hover .overlay { display: flex; }
+  .heart { vertical-align: middle; }
+</style>
+</head>
+<body>
+<nav><b>Photogram</b><span><svg class="heart" data-nd-hue width="24" height="24" viewBox="0 0 24 24"><path fill="#ed4956" d="M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z"/></svg> 1 204</span></nav>
+<div class="profile">
+  <div class="ring"><img src="/img/lake.png" alt="avatar"></div>
+  <div>
+    <p><b>travel.notes</b> <button class="btn-follow" data-nd-hue>Follow</button> <button class="btn-msg">Message</button></p>
+    <p class="stats"><span><b>128</b> posts</span><span><b>12.4k</b> followers</span><span><b>310</b> following</span></p>
+    <p class="muted">Mountains, lakes and long roads.</p>
+  </div>
+</div>
+<div class="grid">
+  <div class="tile"><img src="/photo.png" srcset="/photo.png 1x, /img/mountains.png 2x" alt=""><div class="overlay">♥ 120</div></div>
+  <div class="tile"><picture><source srcset="/img/mountains.png" media="(min-width: 1px)"><img src="/photo.png" alt=""></picture></div>
+  <div class="tile"><img src="/img/lake.png" alt=""></div>
+  <div class="tile"><img src="/img/mountains.png" alt=""></div>
+  <div class="tile"><img src="/photo.png" alt=""></div>
+  <div class="tile"><picture><source type="image/png" srcset="/img/lake.png"><img src="/photo.png" alt=""></picture></div>
+</div>
+</body>
+</html>

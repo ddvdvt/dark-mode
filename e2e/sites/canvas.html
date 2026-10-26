@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- Canvas-rendered apps: a Docs-like editor whose page is painted on <canvas>, and a maps-like
+     widget (image tiles, a transparent canvas overlay with a route, pins and white map controls). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Docs and maps</title>
+<meta name="nd-test" content='{"expect":"dark"}'>
+<style>
+  body { margin: 0; background: #f9fbfd; color: #1f1f1f; font: 14px "Google Sans", Roboto, sans-serif; }
+  .toolbar { display: flex; gap: 6px; padding: 6px 12px; background: #edf2fa; border-radius: 24px; margin: 8px 12px; }
+  .toolbar button { background: transparent; border: 0; color: #444746; padding: 4px 8px; border-radius: 4px; }
+  .toolbar button.on { background: #d3e3fd; color: #041e49; }
+  .workspace { display: flex; gap: 16px; padding: 8px 12px; }
+  .page-wrap { box-shadow: 0 1px 3px 1px rgba(60,64,67,.15); }
+  .map { position: relative; width: 420px; height: 240px; overflow: hidden; background: #e5e3df; border-radius: 8px; }
+  .map img { position: absolute; width: 210px; height: 120px; }
+  .map canvas { position: absolute; inset: 0; }
+  .pin { position: absolute; width: 22px; height: 22px; background: #ea4335; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid #b31412; }
+  .map-control { position: absolute; right: 10px; top: 10px; background: #fff; border-radius: 2px; box-shadow: rgba(0,0,0,.3) 0 1px 4px -1px; display: flex; flex-direction: column; }
+  .map-control button { width: 40px; height: 40px; border: 0; background: #fff; color: #666; font-size: 20px; }
+  .map-attr { position: absolute; left: 0; bottom: 0; background: rgba(255,255,255,.7); color: #444; font-size: 10px; padding: 0 4px; }
+</style>
+</head>
+<body>
+<div class="toolbar"><button class="on">B</button><button>I</button><button>U</button><button>Normal text</button><button>Arial</button></div>
+<div class="workspace">
+  <div class="page-wrap"><canvas id="doc" width="380" height="460"></canvas></div>
+  <div class="map" id="map">
+    <img src="/img/lake.png" style="left:0;top:0" alt=""><img src="/img/mountains.png" style="left:210px;top:0" alt="">
+    <img src="/photo.png" style="left:0;top:120px" alt=""><img src="/img/lake.png" style="left:210px;top:120px" alt="">
+    <canvas id="route" width="420" height="240"></canvas>
+    <div class="pin" style="left:120px;top:90px"></div>
+    <div class="map-control"><button>+</button><button>−</button></div>
+    <div class="map-attr">Map data ©</div>
+  </div>
+</div>
+<script>
+  const d = document.getElementById('doc').getContext('2d');
+  d.fillStyle = '#fff'; d.fillRect(0, 0, 380, 460);
+  d.fillStyle = '#202124'; d.font = 'bold 20px sans-serif'; d.fillText('Quarterly report', 30, 50);
+  d.font = '13px sans-serif';
+  for (let i = 0; i < 18; i++) d.fillText('Canvas-rendered paragraph line ' + (i + 1) + ' with some words.', 30, 90 + i * 20);
+  const r = document.getElementById('route').getContext('2d');
+  r.strokeStyle = '#1a73e8'; r.lineWidth = 5; r.beginPath(); r.moveTo(20, 220); r.lineTo(130, 110); r.lineTo(300, 160); r.lineTo(400, 30); r.stroke();
+</script>
+</body>
+</html>

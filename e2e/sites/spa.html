@@ -1,0 +1,92 @@
+<!doctype html>
+<!-- CSS-in-JS single-page app: shadcn/ui-style "H S% L%" channel variables used as hsl(var(--x)),
+     an emotion-like runtime that adds rules with insertRule() right before rendering, a
+     styled-components-like runtime that appends new <style> tags, and re-renders that replace nodes. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SPA</title>
+<meta name="nd-test" content='{"expect":"dark","live":true}'>
+<style>
+  :root {
+    --background: 0 0% 100%; --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%; --card-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%; --primary-foreground: 210 40% 98%;
+    --muted: 210 40% 96.1%; --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%; --border: 214.3 31.8% 91.4%; --ring: 222.2 84% 4.9%;
+    --radius: .5rem;
+  }
+  * { border-color: hsl(var(--border)); }
+  body { margin: 0; background-color: hsl(var(--background)); color: hsl(var(--foreground)); font: 14px/1.5 system-ui, sans-serif; }
+  .topbar { display: flex; gap: 12px; align-items: center; padding: 12px 24px; border-bottom: 1px solid hsl(var(--border)); background-color: hsl(var(--background) / .95); }
+  .btn { background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border-radius: var(--radius); padding: 6px 14px; border: 0; }
+  .btn-ghost { background-color: transparent; color: hsl(var(--foreground)); }
+  .card { background-color: hsl(var(--card)); color: hsl(var(--card-foreground)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); padding: 16px; }
+  .muted { color: hsl(var(--muted-foreground)); }
+  .pill { background-color: hsl(var(--muted)); border-radius: 999px; padding: 2px 10px; }
+  #root { padding: 24px; display: grid; gap: 12px; }
+</style>
+</head>
+<body>
+<div class="topbar"><b>Acme UI</b><button class="btn">Deploy</button><button class="btn btn-ghost">Docs</button><span class="pill">v2.1</span></div>
+<div id="root"></div>
+<div class="card" style="margin:0 24px"><b>Static card</b><p class="muted">Rendered by the server, styled by channel variables.</p></div>
+<script>
+  // emotion-like: one <style>, rules inserted with insertRule() (no DOM mutation for the rule itself)
+  const emo = document.createElement('style');
+  emo.setAttribute('data-emotion', 'css');
+  document.head.appendChild(emo);
+  let n = 0;
+  function css(text) {
+    const cls = 'css-' + (++n).toString(36);
+    emo.sheet.insertRule('.' + cls + '{' + text + '}', emo.sheet.cssRules.length);
+    return cls;
+  }
+  // styled-components (dev)-like: every component gets its own new <style> element
+  function styled(text) {
+    const cls = 'sc-' + (++n).toString(36);
+    const s = document.createElement('style');
+    s.setAttribute('data-styled', 'active');
+    s.textContent = '.' + cls + '{' + text + '}';
+    document.head.appendChild(s);
+    return cls;
+  }
+  const lum = (s) => {
+    const m = /rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/.exec(s);
+    if (!m || (m[4] !== undefined && +m[4] < 0.5)) return null;
+    const f = (v) => ((v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+    return 0.2126 * f(+m[1]) + 0.7152 * f(+m[2]) + 0.0722 * f(+m[3]);
+  };
+  window.__frames = [];
+  const shades = ['#ffffff', '#f8fafc', '#fefce8', '#f0f9ff', '#fdf2f8'];
+  function render(i) {
+    const root = document.getElementById('root');
+    const a = css('background:' + shades[i % shades.length] + ';color:#0f172a;padding:12px;border:1px solid #e2e8f0;border-radius:8px');
+    const b = styled('background-color:#ffffff;color:#334155;padding:8px 12px;border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,.08)');
+    const items = [];
+    for (let k = 0; k < 4; k++) {
+      const d = document.createElement('div');
+      d.className = k % 2 ? a : b;
+      d.textContent = 'Render ' + i + ', item ' + k;
+      items.push(d);
+    }
+    root.replaceChildren(...items);
+    // what the next frame will paint
+    requestAnimationFrame(() => {
+      for (const d of items) window.__frames.push([i, d.className, lum(getComputedStyle(d).backgroundColor)]);
+    });
+  }
+  render(0);
+  window.addEventListener('load', () => {
+    let i = 1;
+    const t = setInterval(() => {
+      render(i);
+      if (++i === 6) { clearInterval(t); setTimeout(() => (window.__done = true), 100); }
+    }, 250);
+  });
+  // extra assertions for e2e/sites.mjs (only meaningful when the colors come from CSS, i.e. smart mode)
+  window.__ndCheck = (mode) => mode !== 'dynamic' ? [] :
+    window.__frames.filter((f) => f[2] != null && f[2] > 0.3).map((f) => `render ${f[0]} (${f[1]}) painted light before the theme caught up: lum ${f[2].toFixed(2)}`);
+</script>
+</body>
+</html>

@@ -7,11 +7,12 @@
   "license": "MIT",
   "scripts": {
     "test": "node --test \"test/**/*.test.js\"",
-    "test:e2e": "node e2e/smoke.mjs",
+    "test:e2e": "node e2e/smoke.mjs && node e2e/sites.mjs",
     "perf": "node e2e/perf.mjs",
     "icons": "node scripts/make-icons.mjs",
     "zip": "node scripts/pack.mjs",
-    "store:images": "node scripts/store-images.mjs"
+    "store:images": "node scripts/store-images.mjs",
+    "test:sites": "node e2e/sites.mjs"
   },
   "devDependencies": {
     "playwright-core": "^1.64.1"

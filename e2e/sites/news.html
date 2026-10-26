@@ -1,0 +1,59 @@
+<!doctype html>
+<!-- News site: CDN stylesheet from another origin, async CSS (rel=preload + onload, media=print + onload),
+     a hero with a gradient over a background photo and text on it, lazy <img> with a placeholder,
+     <picture>/srcset, ad slots (cross-origin iframe, inline-styled box), "read more" fade. -->
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Новости</title>
+<meta name="nd-test" content='{"expect":"dark"}'>
+<link rel="stylesheet" href="/x-origin/sites/news-cdn.css">
+<link rel="preload" as="style" href="/sites/news-late.css" onload="this.onload=null;this.rel='stylesheet'">
+<link rel="stylesheet" href="/sites/news-print.css" media="print" onload="this.media='all'">
+<style>
+  body { margin: 0; background: #fff; color: #222; font: 16px/1.5 Georgia, serif; }
+  .top { display: flex; align-items: center; gap: 24px; padding: 8px 24px; border-bottom: 3px solid #c00; }
+  .logo { font: 900 28px/1 Arial, sans-serif; color: #c00; letter-spacing: -1px; }
+  .nav a { color: #333; margin-right: 12px; font-family: Arial, sans-serif; text-decoration: none; }
+  .hero { position: relative; height: 260px; background: linear-gradient(rgba(0,0,0,.05), rgba(0,0,0,.75)), url(/img/mountains.png) center / cover; display: flex; align-items: flex-end; }
+  .hero h1 { color: #fff; margin: 0; padding: 16px 24px; font-size: 30px; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+  .wrap { display: flex; gap: 24px; padding: 16px 24px; }
+  .main { flex: 1; }
+  .card { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #e6e6e6; }
+  .card img, .card picture img { width: 160px; height: 90px; object-fit: cover; display: block; background: #eee; }
+  .card h3 { margin: 0 0 4px; font-size: 18px; }
+  .card h3 a { color: #111; text-decoration: none; }
+  .time { color: #767676; font: 12px Arial, sans-serif; }
+  .excerpt { position: relative; max-height: 72px; overflow: hidden; }
+  .excerpt::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 32px; background: linear-gradient(to bottom, rgba(255,255,255,0), #fff); }
+  .side { width: 300px; }
+  .ad-label { font: 10px Arial, sans-serif; color: #999; text-transform: uppercase; }
+  .subscribe { background: #c00; color: #fff; padding: 10px; font: bold 14px Arial, sans-serif; text-align: center; }
+</style>
+</head>
+<body>
+<div class="top"><span class="logo" data-nd-hue>ВЕСТИ</span><nav class="nav"><a href="#">Политика</a><a href="#">Экономика</a><a href="#">Спорт</a></nav></div>
+<div class="ticker">Срочно: тестовая бегущая строка из стиля, загруженного асинхронно</div>
+<div class="hero" data-nd-onimage><h1>Горный Алтай готовится к туристическому сезону</h1></div>
+<div class="wrap">
+  <div class="main">
+    <div class="card"><img class="lazy" data-src="/img/lake.png" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" alt=""><div><h3><a href="#">На озере открыли новую тропу</a></h3><span class="time">12:40</span><p class="excerpt">Местные жители рассказали о том, как строилась тропа, сколько ушло времени и что будет дальше. Продолжение текста скрыто под градиентом, который переходит в цвет фона.</p></div></div>
+    <div class="card"><picture><source srcset="/img/mountains.png" media="(min-width: 600px)"><img src="/photo.png" alt=""></picture><div><h3><a href="#">Цены на билеты снизились</a></h3><span class="time">11:05</span><p class="cdn-note">Блок, оформленный стилем с другого домена.</p></div></div>
+    <div class="card"><img src="/photo.png" srcset="/photo.png 1x, /img/lake.png 2x" alt=""><div><h3><a href="#">Погода на выходные</a></h3><span class="time">10:30</span></div></div>
+  </div>
+  <aside class="side">
+    <div class="ad-label">Реклама</div>
+    <iframe src="/x-origin/sites/ad.html" width="300" height="120" style="border:0;display:block" title="ad"></iframe>
+    <div class="ad-slot" style="background:#f2f2f2;color:#555;padding:12px;margin:12px 0;border:1px solid #ddd">Здесь могла быть ваша реклама</div>
+    <div class="subscribe" data-nd-hue>Подписаться на рассылку</div>
+    <div class="late-box">Блок из отложенного стиля (media=print → all)</div>
+  </aside>
+</div>
+<script>
+  window.addEventListener('load', () => setTimeout(() => {
+    for (const img of document.querySelectorAll('img.lazy')) img.src = img.dataset.src;
+    setTimeout(() => (window.__done = true), 100);
+  }, 150));
+</script>
+</body>
+</html>

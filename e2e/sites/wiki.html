@@ -1,0 +1,81 @@
+<!doctype html>
+<!-- Wikipedia-like article: classic CSS, a wordmark image, CSS-mask icons, infobox, wikitables with
+     inline cell colors, inline math SVG (fill/stroke attributes) and an SVG diagram with a white backdrop. -->
+<html lang="ru" class="client-js vector-feature-zebra-design-disabled">
+<head>
+<meta charset="utf-8">
+<title>Луна — Вики</title>
+<meta name="nd-test" content='{"expect":"dark"}'>
+<style>
+  html, body { margin: 0; }
+  body { background: #f8f9fa; color: #202122; font: 14px/1.6 sans-serif; }
+  .mw-page-container { background: #fff; max-width: 920px; margin: 0 auto; padding: 0 24px 40px; border-left: 1px solid #a2a9b1; border-right: 1px solid #a2a9b1; }
+  .vector-header { display: flex; align-items: center; gap: 12px; height: 56px; border-bottom: 1px solid #eaecf0; }
+  .mw-logo-wordmark { width: 120px; height: 20px; }
+  .vector-search-box { flex: 1; display: flex; border: 1px solid #a2a9b1; border-radius: 2px; background: #fff; }
+  .vector-search-box input { border: 0; flex: 1; padding: 6px; background: transparent; color: #202122; }
+  .cdx-button { background: #f8f9fa; color: #202122; border: 1px solid #a2a9b1; border-radius: 2px; padding: 4px 12px; font-weight: bold; }
+  .cdx-icon { display: inline-block; width: 20px; height: 20px; vertical-align: middle; background-color: #202122;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M1 3h18v2H1zm0 6h18v2H1zm0 6h18v2H1z'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M1 3h18v2H1zm0 6h18v2H1zm0 6h18v2H1z'/%3E%3C/svg%3E") center / contain no-repeat; }
+  a { color: #3366cc; text-decoration: none; }
+  a:visited { color: #795cb2; }
+  a.new { color: #d73333; }
+  h1, h2 { font-family: Georgia, serif; font-weight: normal; border-bottom: 1px solid #a2a9b1; margin: 16px 0 8px; }
+  .hatnote { font-style: italic; padding-left: 1.6em; color: #202122; }
+  .ambox { border: 1px solid #a2a9b1; border-left: 10px solid #36c; background: #fbfbfb; padding: 6px 10px; margin: 8px 0; }
+  .infobox { float: right; width: 260px; margin: 0 0 12px 16px; background: #f8f9fa; border: 1px solid #a2a9b1; border-collapse: collapse; font-size: 88%; }
+  .infobox th { background: #cedff2; padding: 4px; }
+  .infobox td { padding: 2px 4px; border-top: 1px solid #eaecf0; }
+  .infobox img { display: block; width: 240px; height: 120px; margin: 4px auto; }
+  .wikitable { background: #f8f9fa; color: #202122; margin: 1em 0; border: 1px solid #a2a9b1; border-collapse: collapse; }
+  .wikitable th { background: #eaecf0; }
+  .wikitable td, .wikitable th { border: 1px solid #a2a9b1; padding: 3px 6px; }
+  .mwe-math-element svg { vertical-align: -0.4em; }
+  .diagram { display: block; margin: 8px 0; }
+  .reflist { font-size: 90%; color: #54595d; }
+  .navbox { border: 1px solid #a2a9b1; clear: both; margin-top: 16px; }
+  .navbox-title { background: #ccf; text-align: center; font-weight: bold; padding: 2px; }
+  .navbox-list { background: #fdfdfd; padding: 4px; }
+</style>
+</head>
+<body class="skin-vector">
+<div class="mw-page-container">
+  <header class="vector-header">
+    <span class="cdx-icon" data-nd-icon title="Меню"></span>
+    <img class="mw-logo-wordmark" data-nd-skip alt="Вики" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='20'%3E%3Ctext x='0' y='16' font-family='serif' font-size='17' fill='%23000'%3EВикипедия%3C/text%3E%3C/svg%3E">
+    <form class="vector-search-box"><input placeholder="Искать в Википедии"><button class="cdx-button" type="button">Найти</button></form>
+  </header>
+  <h1 id="firstHeading">Луна</h1>
+  <div class="hatnote">Эта статья — о спутнике Земли; о других значениях см. <a href="#">Луна (значения)</a>.</div>
+  <div class="ambox">В этой статье <b>не хватает ссылок</b> на источники информации.</div>
+  <table class="infobox">
+    <tr><th colspan="2">Луна</th></tr>
+    <tr><td colspan="2"><img src="/img/lake.png" alt="Фото"></td></tr>
+    <tr><td>Большая полуось</td><td>384 399 км</td></tr>
+    <tr><td style="background:#e6e6ff">Эксцентриситет</td><td>0,0549</td></tr>
+    <tr><td>Масса</td><td>7,35·10<sup>22</sup> кг</td></tr>
+  </table>
+  <p><b>Луна́</b> — единственный естественный <a href="#">спутник Земли</a>. Самый близкий к Солнцу спутник планеты, так как у ближайших к Солнцу планет (<a href="#">Меркурия</a> и <a class="new" href="#">Венеры</a>) их нет.</p>
+  <p>Ускорение свободного падения
+    <span class="mwe-math-element"><svg width="88" height="20" viewBox="0 0 88 20" role="img" aria-label="g = GM/r^2"><g fill="black" stroke="black" stroke-width="0"><text x="0" y="15" font-size="15" font-style="italic">g = GM/r</text><text x="62" y="8" font-size="10">2</text><path d="M2 18h70v1H2z"/></g></svg></span>
+    на поверхности Луны в 6 раз меньше земного.</p>
+  <svg class="diagram" width="300" height="90" viewBox="0 0 300 90">
+    <rect width="300" height="90" fill="white" stroke="#a2a9b1"/>
+    <circle cx="60" cy="45" r="30" fill="#4b8bd6"/>
+    <circle cx="230" cy="45" r="10" fill="#c8c8c8" stroke="#000"/>
+    <path d="M95 45H215" stroke="#000" stroke-dasharray="4 3"/>
+    <text x="120" y="38" font-size="12" fill="#000">384 400 км</text>
+  </svg>
+  <h2>Физические характеристики</h2>
+  <table class="wikitable">
+    <tr><th>Параметр</th><th>Луна</th><th>Земля</th></tr>
+    <tr><td>Радиус, км</td><td>1737</td><td>6371</td></tr>
+    <tr><td style="background:#ffffcc">Плотность, г/см³</td><td style="background:#d4f7d4">3,34</td><td>5,51</td></tr>
+    <tr><td>Альбедо</td><td style="background-color:#ffe0e0;color:#600">0,12</td><td>0,30</td></tr>
+  </table>
+  <ol class="reflist"><li>Примечание к статье, <a href="#">источник</a>.</li><li>Ещё одно примечание.</li></ol>
+  <div class="navbox"><div class="navbox-title">Солнечная система</div><div class="navbox-list"><a href="#">Меркурий</a> · <a href="#">Венера</a> · <a href="#">Земля</a> · <a href="#">Марс</a></div></div>
+</div>
+</body>
+</html>

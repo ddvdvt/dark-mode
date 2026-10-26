@@ -1,0 +1,31 @@
+<!doctype html>
+<!-- Stress page: a server-rendered catalogue with ~24 000 elements, 1 200 rules and inline styles. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Huge catalogue</title>
+<meta name="nd-test" content='{"expect":"dark","huge":true}'>
+<style>
+  body { margin: 0; background: #fff; color: #222; font: 13px/1.4 Arial, sans-serif; }
+  .row { display: flex; gap: 8px; padding: 4px 12px; border-bottom: 1px solid #eee; }
+  .row:nth-child(2n) { background: #fafafa; }
+  .sku { color: #888; width: 80px; } .name { flex: 1; } .price { font-weight: bold; color: #111; } .tag { background: #e8f0fe; color: #1a4fa0; padding: 0 4px; border-radius: 3px; }
+</style>
+<script>
+  // generated rules, like a big site bundle
+  let css = '';
+  for (let i = 0; i < 1200; i++) css += '.c' + i + '{color:hsl(' + (i * 7 % 360) + ' 50% 30%);border-color:hsl(' + (i * 7 % 360) + ' 40% 85%)}.c' + i + ':hover{background:hsl(' + (i * 7 % 360) + ' 60% 96%)}';
+  document.write('<style>' + css + '</style>');
+</script>
+</head>
+<body>
+<h1>Catalogue</h1>
+<script>
+  let html = '';
+  for (let i = 0; i < 4000; i++) {
+    html += '<div class="row c' + (i % 1200) + '"' + (i % 50 === 0 ? ' style="background:#fff7e0"' : '') + '><span class="sku">#' + i + '</span><span class="name">Item number ' + i + ' <a href="#">details</a></span><span class="tag">new</span><span class="price">' + (i * 13 % 997) + ' ₸</span></div>';
+  }
+  document.write(html);
+</script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<!-- "!important everywhere" theme: !important rules, !important custom properties, inline
+     !important, colors on hover/focus pseudo-classes, a sticky translucent header, transitions. -->
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Магазин</title>
+<meta name="nd-test" content='{"expect":"dark"}'>
+<style>
+  :root { --brand: #e30613 !important; --surface: #ffffff !important; --ink: #1d1d1b !important; }
+  body { margin: 0 !important; background: var(--surface) !important; color: var(--ink) !important; font: 15px/1.5 Arial, sans-serif !important; }
+  .header { position: sticky; top: 0; background: rgba(255,255,255,.92) !important; border-bottom: 1px solid #e5e5e5 !important; padding: 10px 20px; z-index: 5; }
+  .header a { color: #1d1d1b !important; margin-right: 14px; transition: color .2s; }
+  .header a:hover { color: var(--brand) !important; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 20px; }
+  .product { border: 1px solid #eee !important; background-color: #fff !important; padding: 12px; border-radius: 8px; }
+  .product img { width: 100%; height: 120px; object-fit: cover; display: block; }
+  .price { color: #000 !important; font-size: 20px; font-weight: 700; }
+  .old { color: #8a8a8a !important; text-decoration: line-through !important; text-decoration-color: #e30613 !important; }
+  .buy { background: var(--brand) !important; color: #fff !important; border: 0; border-radius: 6px; padding: 8px 14px; }
+  .sale { background: #ffe600 !important; color: #000 !important; font-weight: 700; padding: 0 6px; }
+  .note { outline: 2px dashed #ccc !important; padding: 8px; margin: 0 20px; color: #444 !important; }
+</style>
+</head>
+<body>
+<div class="header"><b style="color:#e30613 !important">SHOP</b> <a href="#">Каталог</a><a href="#">Акции</a><a href="#">Доставка</a></div>
+<div class="grid">
+  <div class="product"><img src="/photo.png" alt=""><p>Палатка «Алтай-2» <span class="sale">−20%</span></p><p class="price">7 990 ₽ <span class="old">9 990 ₽</span></p><button class="buy" data-nd-hue>В корзину</button></div>
+  <div class="product"><img src="/img/lake.png" alt=""><p>Спальник −5°</p><p class="price">4 490 ₽</p><button class="buy">В корзину</button></div>
+  <div class="product" style="background:#fffbea !important"><img src="/img/mountains.png" alt=""><p style="color:#333 !important">Термос 1 л (выделенная карточка)</p><p class="price">1 990 ₽</p><button class="buy">В корзину</button></div>
+</div>
+<p class="note">Доставка бесплатно от 3 000 ₽.</p>
+</body>
+</html>
