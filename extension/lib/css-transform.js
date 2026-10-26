@@ -59,7 +59,9 @@
 
   // Color tokens inside a value. Strings and url() are matched only to be skipped. rgb()/hsl() may hold
   // one level of var() (Tailwind 3: rgb(255 255 255 / var(--tw-bg-opacity)), Bootstrap: rgba(var(--x-rgb), .5)).
-  const TOKEN_RE = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|url\([^)]*\)|#[0-9a-f]{3,8}(?![\w-])|\b(?:rgba?|hsla?)\((?:[^()]|var\([^()]*\))*\)|\b(?:hwb|lab|lch|oklch|oklab|color)\([^()]*\)|(?<![\w-])[a-z]{3,20}(?![\w(-])/gi;
+  // (Case-sensitive on purpose — faster; CSSOM serializes function names in lower case, except what
+  // authors wrote in custom properties, so the upper-case RGB/RGBA/HSL/HSLA spellings are listed.)
+  const TOKEN_RE = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|url\([^)]*\)|#[0-9a-fA-F]{3,8}(?![\w-])|\b(?:rgba?|hsla?|RGBA?|HSLA?)\((?:[^()]|var\([^()]*\))*\)|\b(?:hwb|lab|lch|oklch|oklab|color)\([^()]*\)|(?<![\w-])[a-zA-Z]{3,20}(?![\w(-])/g;
 
   /** "H S% L%" / "R, G, B" — a custom property that holds only the channels of a color. */
   const CHANNELS_RE = /^\s*(-?[\d.]+(?:deg|turn|g?rad)?)(\s*,\s*|\s+)(-?[\d.]+%?)\s*,?\s*(-?[\d.]+%?)\s*$/i;
@@ -149,6 +151,7 @@
    * @property {Set<string>} varNonColor custom properties with a definition that is not a plain color
    * @property {number} version   bumped whenever what is known about variables changes
    * @property {WeakMap<object, any>} ruleCache plan node per CSSStyleRule (CSSOM reads are the expensive part)
+   * @property {boolean} cacheRules use ruleCache (for sheets that are read again and again: CSS-in-JS)
    * @property {number} rules     style rules visited
    * @property {number} decls     declarations rewritten
    * @property {number} maxRules  abort with TooBig above this
@@ -165,6 +168,7 @@
       varNonColor: new Set(),
       version: 0,
       ruleCache: new WeakMap(),
+      cacheRules: true,
       rules: 0,
       decls: 0,
       maxRules: 100000,
@@ -299,7 +303,9 @@
   /** @param {any} st CSSStyleDeclaration @param {Ctx} ctx @returns {any[]} */
   function readDecls(st, ctx) {
     const out = [];
-    let masked = null;
+    let masked = false;
+    /** @type {any[] | null} background decls: [index in out (-1: only noted), value, ...] */
+    let bgAt = null;
     for (let j = 0, n = st.length; j < n; j++) {
       const p = st[j];
       if (isCustom(p)) {
@@ -317,31 +323,43 @@
         out.push(p, v, null, st);
         continue;
       }
-      let role = PROP_ROLE[p];
-      if (!role) continue;
-      if (MASKED.has(p)) {
+      if (p === 'mask-image' || p === '-webkit-mask-image') {
         // an icon drawn with a CSS mask: its "background" is the glyph color, i.e. foreground
-        if (masked === null) {
-          const mi = st.getPropertyValue('mask-image') || st.getPropertyValue('-webkit-mask-image');
-          masked = !!mi && mi !== 'none' && mi !== 'initial';
-        }
-        if (masked) role = 'fg';
+        const mi = st.getPropertyValue(p);
+        if (mi && mi !== 'none' && mi !== 'initial') masked = true;
+        continue;
       }
+      const role = PROP_ROLE[p];
+      if (!role) continue;
       let v = st.getPropertyValue(p);
+      let synthetic = false;
       if (!v) {
         // written through a shorthand with var(): only learn how the variable is used
         const shs = SHORTHANDS[p];
         if (shs) for (let k = 0; k < shs.length; k++) if ((v = st.getPropertyValue(shs[k]))) break;
-        if (v) {
-          noteVars(ctx, v, role);
-          // `background: var(--x)`: a single variable through a shorthand. Kept (role marked with ~) so
-          // that a variable used both as text and background can still be pointed at its alias.
-          if (p.endsWith('-color') && SINGLE_VAR_RE.test(v)) out.push(p, v.trim(), '~' + role, st);
+        if (!v) continue;
+        // `background: var(--x)`: a single variable through a shorthand. Kept (role marked with ~) so
+        // that a variable used both as text and background can still be pointed at its alias.
+        synthetic = p.endsWith('-color') && SINGLE_VAR_RE.test(v);
+        if (!synthetic) {
+          if (!MASKED.has(p)) noteVars(ctx, v, role);
+          else (bgAt || (bgAt = [])).push(-1, v);
+          continue;
         }
-        continue;
+        v = v.trim();
       }
-      noteVars(ctx, v, role);
-      out.push(p, v, role, st);
+      if (MASKED.has(p)) (bgAt || (bgAt = [])).push(out.length, v);
+      else noteVars(ctx, v, role);
+      out.push(p, v, synthetic ? '~' + role : role, st);
+    }
+    // background colors are noted (and roled) once the whole declaration block is known
+    if (bgAt) {
+      const role = masked ? 'fg' : 'bg';
+      for (let k = 0; k < bgAt.length; k += 2) {
+        noteVars(ctx, bgAt[k + 1], role);
+        const at = bgAt[k];
+        if (at >= 0 && masked) out[at + 2] = out[at + 2].charCodeAt(0) === 126 ? '~fg' : 'fg';
+      }
     }
     return out;
   }
@@ -378,13 +396,13 @@
       const kind = rule.constructor.name;
       if (kind === 'CSSStyleRule') {
         if (++ctx.rules > ctx.maxRules) throw new TooBig('too many rules');
-        let node = ctx.ruleCache.get(rule);
+        let node = ctx.cacheRules ? ctx.ruleCache.get(rule) : undefined;
         if (node === undefined) {
           const decls = readDecls(rule.style, ctx);
           const sub = rule.cssRules;
           const nested = sub && sub.length ? readRules(sub, ctx) : null;
           node = decls.length || (nested && nested.length) ? ['S', rule.selectorText, decls, nested] : null;
-          ctx.ruleCache.set(rule, node);
+          if (ctx.cacheRules) ctx.ruleCache.set(rule, node);
         }
         if (node) plan.push(node);
       } else if (kind === 'CSSNestedDeclarations') {
@@ -424,7 +442,6 @@
     for (let i = 0; i < d.length; i += 4) {
       const p = d[i], v = d[i + 1];
       let role = d[i + 2];
-      const imp = d[i + 3].getPropertyPriority(p) ? ' !important;' : ';';
       if (role && role.charCodeAt(0) === 126) {
         // through a shorthand: the longhand alone is safe only for a variable that holds a plain color
         const name = /** @type {RegExpExecArray} */ (SINGLE_VAR_RE.exec(v))[1];
@@ -435,22 +452,23 @@
         const t = transformValue(rewriteRefs(v, role, ctx), role);
         if (t === v) continue;
         ctx.decls++;
-        body += p + ':' + t + imp;
+        body += p + ':' + t + (d[i + 3].getPropertyPriority(p) ? ' !important;' : ';');
         continue;
       }
       // custom property: one value, or one alias per role when it is used both as text and background
       const set = varRoleSet(p, ctx, 0);
       if (isMixedSet(set)) {
         const g = transformVar(p, v, 'generic', ctx);
-        if (g !== v) body += p + ':' + g + imp;
-        for (const r of ROLES) if (set.has(r)) body += aliasName(p, r) + ':' + transformVar(p, v, r, ctx) + imp;
+        const pr = d[i + 3].getPropertyPriority(p) ? ' !important;' : ';';
+        if (g !== v) body += p + ':' + g + pr;
+        for (const r of ROLES) if (set.has(r)) body += aliasName(p, r) + ':' + transformVar(p, v, r, ctx) + pr;
         ctx.decls++;
         continue;
       }
       const t = transformVar(p, v, varRole(p, ctx), ctx);
       if (t === v) continue;
       ctx.decls++;
-      body += p + ':' + t + imp;
+      body += p + ':' + t + (d[i + 3].getPropertyPriority(p) ? ' !important;' : ';');
     }
     return body;
   }
@@ -482,10 +500,17 @@
 
   /**
    * Read a sheet's rule list into a plan (one pass over the CSSOM).
-   * @param {ArrayLike<any>} rules @param {Ctx} ctx
+   * opts.cache: remember the plan of every style rule (worth it only for sheets read more than once).
+   * @param {ArrayLike<any>} rules @param {Ctx} ctx @param {{ cache?: boolean }} [opts]
    */
-  function readSheet(rules, ctx) {
-    return readRules(rules, ctx);
+  function readSheet(rules, ctx, opts) {
+    const prev = ctx.cacheRules;
+    if (opts && opts.cache != null) ctx.cacheRules = opts.cache;
+    try {
+      return readRules(rules, ctx);
+    } finally {
+      ctx.cacheRules = prev;
+    }
   }
 
   /**

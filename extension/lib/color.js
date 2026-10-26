@@ -320,25 +320,35 @@
     }
     const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
     const p = 2 * l - q;
-    const f = (t) => {
-      let x = t;
-      if (x < 0) x += 1;
-      if (x > 1) x -= 1;
-      if (x < 1 / 6) return p + (q - p) * 6 * x;
-      if (x < 1 / 2) return q;
-      if (x < 2 / 3) return p + (q - p) * (2 / 3 - x) * 6;
-      return p;
-    };
-    return { r: Math.round(f(hh + 1 / 3) * 255), g: Math.round(f(hh) * 255), b: Math.round(f(hh - 1 / 3) * 255) };
+    return { r: Math.round(hue2rgb(p, q, hh + 1 / 3) * 255), g: Math.round(hue2rgb(p, q, hh) * 255), b: Math.round(hue2rgb(p, q, hh - 1 / 3) * 255) };
   }
+
+  function hue2rgb(p, q, t) {
+    let x = t;
+    if (x < 0) x += 1;
+    if (x > 1) x -= 1;
+    if (x < 1 / 6) return p + (q - p) * 6 * x;
+    if (x < 1 / 2) return q;
+    if (x < 2 / 3) return p + (q - p) * (2 / 3 - x) * 6;
+    return p;
+  }
+
+  /** Linear light of an 8-bit channel (WCAG formula), precomputed. */
+  const LIN = new Float64Array(256);
+  for (let v = 0; v < 256; v++) {
+    const x = v / 255;
+    LIN[v] = x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+  }
+  const linOf = (v) => {
+    const i = Math.round(v);
+    if (i >= 0 && i <= 255 && i === v) return LIN[i];
+    const x = clamp(v, 0, 255) / 255;
+    return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+  };
 
   /** WCAG relative luminance 0..1. @param {RGBA} c */
   function luminance({ r, g, b }) {
-    const lin = (v) => {
-      const x = v / 255;
-      return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
-    };
-    return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+    return 0.2126 * linOf(r) + 0.7152 * linOf(g) + 0.0722 * linOf(b);
   }
 
   /** WCAG contrast ratio of two opaque colors. */
@@ -379,26 +389,56 @@
     let l = mapLightness(hsl.l, role);
     // Very saturated light backgrounds would turn into muddy dark colors: tone saturation down a bit.
     const s = role === 'bg' && hsl.l > 0.5 ? hsl.s * 0.85 : hsl.s;
-    let out = hslToRgb({ h: hsl.h, s, l });
+    let out = null;
     // HSL lightness is not perceived lightness: a yellow at l = 0.3 is as bright as a gray at 0.5, a
     // blue at l = 0.63 as dark as a gray at 0.4. A saturated background must not end up brighter, and
     // saturated text not darker, than the gray of the same target lightness, or contrast is lost
     // (yellow buttons with light text, blue links on a dark page). Hue and saturation are kept.
-    if (s > 0.05 && (role === 'bg' || role === 'fg')) {
-      const v = Math.round(l * 255);
-      const target = luminance({ r: v, g: v, b: v });
-      const cur = luminance(out);
+    // (Backgrounds mapped very dark — most former white and pastel surfaces — are left out: light text
+    // on them keeps a contrast above 10:1 either way, and they are the bulk of a stylesheet.)
+    if (s > 0.05 && ((role === 'bg' && l > 0.16) || role === 'fg')) {
+      // For a fixed hue and saturation every HSL channel is linear in l on each side of 0.5 (black at
+      // 0, the color at 0.5, white at 1): luminance at any l comes from the color at 0.5 alone.
+      const mid = hslToRgb({ h: hsl.h, s, l: 0.5 });
+      const target = linF(l * 255);
+      const cur = lumAtL(mid, l);
       if (role === 'bg' ? cur > target : cur < target) {
         let lo = role === 'bg' ? 0 : l, hi = role === 'bg' ? l : 0.92;
-        for (let i = 0; i < 12; i++) {
-          const mid = (lo + hi) / 2;
-          if (luminance(hslToRgb({ h: hsl.h, s, l: mid })) > target) hi = mid;
-          else lo = mid;
+        for (let i = 0; i < 5; i++) {
+          const m = (lo + hi) / 2;
+          if (lumAtL(mid, m) > target) hi = m;
+          else lo = m;
         }
-        out = hslToRgb({ h: hsl.h, s, l: role === 'bg' ? lo : hi });
+        l = role === 'bg' ? lo : hi;
       }
     }
-    return { ...out, a: c.a };
+    out = hslToRgb({ h: hsl.h, s, l });
+    return { r: out.r, g: out.g, b: out.b, a: c.a };
+  }
+
+  /** Linear light of a fractional 8-bit channel value (table + interpolation). */
+  function linF(v) {
+    if (v <= 0) return 0;
+    if (v >= 255) return 1;
+    const i = v | 0;
+    return LIN[i] + (LIN[i + 1] - LIN[i]) * (v - i);
+  }
+
+  /** Luminance of the color with hue/saturation of `mid` (its value at l = 0.5) at lightness l. */
+  function lumAtL(mid, l) {
+    let r, g, b;
+    if (l <= 0.5) {
+      const k = l * 2;
+      r = mid.r * k;
+      g = mid.g * k;
+      b = mid.b * k;
+    } else {
+      const k = (l - 0.5) * 2;
+      r = mid.r + (255 - mid.r) * k;
+      g = mid.g + (255 - mid.g) * k;
+      b = mid.b + (255 - mid.b) * k;
+    }
+    return 0.2126 * linF(r) + 0.7152 * linF(g) + 0.0722 * linF(b);
   }
 
   /** Background is dark enough to be left alone (original dark or already transformed). */

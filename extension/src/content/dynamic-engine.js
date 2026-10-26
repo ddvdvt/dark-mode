@@ -21,7 +21,10 @@
   const OBSERVE = { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['style', 'bgcolor', 'color', 'text', 'fill', 'stroke', 'media', 'disabled', 'rel'] };
   // restores: how often an override removed or displaced by the page is put back before it is parked
   const LIMITS = { rules: 60000, elements: 60000, syncFallback: 300, restores: 10, pendingHosts: 2000 };
-  const EMIT = { screen: true };
+  // Overrides are screen-only: media="screen" on the element, or (when the source sheet has its own
+  // media list, which the override must keep) @media screen around the text.
+  const WRAP = { screen: true };
+  const PLAIN = { screen: false };
   /** Inline declarations that an inline !important would keep from our rules. */
   const INLINE = /** @type {Array<[string, 'bg' | 'fg' | 'image']>} */ ([['background-color', 'bg'], ['color', 'fg'], ['background-image', 'image']]);
 
@@ -68,10 +71,10 @@
       /** Fallback rules for shadow trees (document rules do not reach inside them). */
       /** @type {CSSStyleSheet | null} */
       this.shadowFallback = null;
-      /** @type {Map<Element, { el: HTMLStyleElement, sig: string, plan: any[] | null, vars: boolean, version: number, restores: number }>} */
+      /** @type {Map<Element, { el: HTMLStyleElement, sig: string, plan: any[] | null, vars: boolean, version: number, restores: number, wrap: boolean }>} */
       this.overrides = new Map();
       /** adopted stylesheet → its adopted override */
-      /** @type {Map<CSSStyleSheet, { sheet: CSSStyleSheet, sig: number, plan: any[], vars: boolean, version: number, text: string }>} */
+      /** @type {Map<CSSStyleSheet, { sheet: CSSStyleSheet, sig: number, plan: any[], vars: boolean, version: number, text: string, wrap: boolean }>} */
       this.adopted = new Map();
       /** @type {WeakSet<CSSStyleSheet>} */
       this.ownSheets = new WeakSet();
@@ -80,7 +83,7 @@
       /** custom elements without a shadow root yet (upgraded later) */
       /** @type {Map<Element, number>} host → ticks left */
       this.pendingHosts = new Map();
-      this.ctx = CSS.createContext({ maxRules: LIMITS.rules });
+      this.ctx = CSS.createContext({ maxRules: LIMITS.rules, cacheRules: false });
       this.emitted = 0; // ctx.version the overrides were emitted with
       /** @type {Map<string, string>} override key → class id */
       this.classes = new Map();
@@ -91,6 +94,8 @@
       this.scanRoots = [];
       /** @type {Element[]} single elements to check */
       this.single = [];
+      /** @type {Set<Element>} elements whose own attributes changed (their old override may be stale) */
+      this.dirty = new Set();
       /** @type {TreeWalker | null} */
       this.walker = null;
       this.scheduled = false;
@@ -287,12 +292,15 @@
       const t = performance.now();
       const unreadableBefore = this.ctx.unreadable;
       this.ctx.rules = 0;
-      const plan = CSS.readSheet(rules, this.ctx);
-      const text = CSS.emitSheet(plan, this.ctx, EMIT);
+      // first read: plain; a sheet read again (it grows: CSS-in-JS) keeps per-rule plans for the next time
+      const plan = CSS.readSheet(rules, this.ctx, { cache: !!prev });
+      const media = node.getAttribute('media');
+      const text = CSS.emitSheet(plan, this.ctx, media ? WRAP : PLAIN);
       if (this.ctx.unreadable && !unreadableBefore) this.startFullScan();
       this.countRules(node, this.ctx.rules);
       this.stat.decls = this.ctx.decls;
-      const entry = prev || { el: dom.makeStyle('o', ''), sig, plan, vars: false, version: 0, restores: 0 };
+      const entry = prev || { el: dom.makeStyle('o', ''), sig, plan, vars: false, version: 0, restores: 0, wrap: false };
+      entry.wrap = !!media;
       entry.sig = sig;
       entry.plan = plan;
       entry.vars = CSS.planUsesVars(plan);
@@ -306,9 +314,7 @@
       }
       if (!prev) this.stat.sheets++;
       if (el.textContent !== text) el.textContent = text;
-      const media = node.getAttribute('media');
-      if (media) el.setAttribute('media', media);
-      else el.removeAttribute('media');
+      el.setAttribute('media', media || 'screen');
       el.disabled = !!sheet.disabled;
       if (el.previousSibling !== node) node.after(el);
       this.stat.sheetMs += performance.now() - t;
@@ -358,7 +364,7 @@
       for (const [node, o] of this.overrides) {
         if (!o.vars || o.version === v || !o.plan) continue;
         o.version = v;
-        const text = CSS.emitSheet(o.plan, this.ctx, EMIT);
+        const text = CSS.emitSheet(o.plan, this.ctx, o.wrap ? WRAP : PLAIN);
         if (text === o.el.textContent) continue;
         o.el.textContent = text;
         if (text && !o.el.isConnected && node.isConnected) node.after(o.el);
@@ -367,7 +373,7 @@
       for (const a of this.adopted.values()) {
         if (!a.vars || a.version === v) continue;
         a.version = v;
-        const text = CSS.emitSheet(a.plan, this.ctx, EMIT);
+        const text = CSS.emitSheet(a.plan, this.ctx, a.wrap ? WRAP : PLAIN);
         if (text !== a.text) {
           a.text = text;
           a.sheet.replaceSync(text);
@@ -473,12 +479,12 @@
       let a = this.adopted.get(sheet);
       if (a && a.sig === rules.length) return a.text ? a.sheet : null;
       this.ctx.rules = 0;
-      const plan = CSS.readSheet(rules, this.ctx);
-      const text = CSS.emitSheet(plan, this.ctx, EMIT);
+      const plan = CSS.readSheet(rules, this.ctx, { cache: !!a });
+      const media = sheet.media && sheet.media.mediaText;
+      const text = CSS.emitSheet(plan, this.ctx, media ? WRAP : PLAIN);
       this.countRules(sheet, this.ctx.rules);
       if (!a) {
-        const media = sheet.media && sheet.media.mediaText;
-        a = { sheet: new CSSStyleSheet(media ? { media } : undefined), sig: 0, plan, vars: false, version: 0, text: '' };
+        a = { sheet: new CSSStyleSheet({ media: media || 'screen' }), sig: 0, plan, vars: false, version: 0, text: '', wrap: !!media };
         this.ownSheets.add(a.sheet);
         this.adopted.set(sheet, a);
         this.stat.adopted++;
@@ -539,7 +545,8 @@
       this.stat.mutations += recs.length;
       /** @type {Set<Element>} */
       const sheets = new Set();
-      let added = false;
+      /** @type {Set<Element> | null} */
+      let added = null;
       let lost = false;
       for (const r of recs) {
         const target = /** @type {Element} */ (r.target);
@@ -548,13 +555,9 @@
           if (parent && parent.tagName === 'STYLE' && !dom.isOurs(parent)) sheets.add(parent);
           for (const n of r.addedNodes) {
             if (n.nodeType !== 1 || dom.isOurs(n)) continue;
-            added = true;
             const el = /** @type {Element} */ (n);
             if (el.tagName === 'STYLE' || el.tagName === 'LINK') sheets.add(el);
-            else if (el.firstElementChild) for (const s of el.querySelectorAll(SHEET_SEL)) sheets.add(s);
-            if (this.fullScan) this.scanRoots.push(el);
-            else this.enqueueLegacy(el);
-            this.scanShadows(el);
+            (added || (added = new Set())).add(el);
           }
           for (const n of r.removedNodes) {
             if (n.nodeType !== 1) continue;
@@ -571,8 +574,32 @@
           if (name === 'media' || name === 'disabled' || name === 'rel') {
             if (target.tagName === 'STYLE' || target.tagName === 'LINK') sheets.add(target);
           } else if (name === 'class') {
-            if (this.fullScan) this.single.push(target);
-          } else this.single.push(target);
+            if (this.fullScan) {
+              this.single.push(target);
+              this.dirty.add(target);
+            }
+          } else {
+            this.single.push(target);
+            this.dirty.add(target);
+          }
+        }
+      }
+      if (added) {
+        // While a page is parsed, an element and all its descendants arrive in the same batch: walk only
+        // the topmost added elements (their subtrees cover the rest), not every subtree again.
+        for (const el of added) {
+          let top = true;
+          for (let p = el.parentNode; p; p = p.parentNode) {
+            if (added.has(/** @type {Element} */ (p))) {
+              top = false;
+              break;
+            }
+          }
+          if (!top || !el.isConnected) continue;
+          if (el.firstElementChild) for (const s of el.querySelectorAll(SHEET_SEL)) sheets.add(s);
+          if (this.fullScan) this.scanRoots.push(el);
+          else this.enqueueLegacy(el);
+          this.scanShadows(el);
         }
       }
       for (const s of sheets) {
@@ -674,7 +701,9 @@
       // Elements tagged earlier whose inline style / attributes changed: the old override would pin
       // stale colors. They are untagged and measured again (with transitions off: no flicker).
       let restore = null;
-      const stale = this.single.filter((el) => el.nodeType === 1 && el.hasAttribute('data-nd-c'));
+      const stale = [];
+      for (const el of this.dirty) if (el.hasAttribute('data-nd-c')) stale.push(el);
+      this.dirty.clear();
       if (stale.length) {
         restore = dom.transitionsOff();
         for (const el of stale) {
@@ -813,6 +842,7 @@
       if (this.fallback) this.fallback.remove();
       this.base = this.fallback = null;
       this.single.length = this.scanRoots.length = this.verify.length = 0;
+      this.dirty.clear();
       this.walker = null;
       for (const el of document.querySelectorAll('[data-nd-c]')) el.removeAttribute('data-nd-c');
       for (const r of this.roots) for (const el of r.querySelectorAll('[data-nd-c]')) el.removeAttribute('data-nd-c');

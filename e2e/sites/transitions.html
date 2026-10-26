@@ -14,9 +14,17 @@
   .inline-t { transition: background-color 1s; }
 </style>
 <script>
-  // record every CSS transition that starts on the page (theme changes must not animate)
+  // record every color transition that is running when a frame is painted (= a visible animation)
   window.__transitions = [];
-  addEventListener('transitionrun', (e) => window.__transitions.push((e.target.className || e.target.tagName) + ':' + e.propertyName + '@' + Math.round(performance.now())), true);
+  const seen = new Set();
+  (function frame() {
+    for (const a of document.getAnimations()) {
+      if (!(a instanceof CSSTransition) || a.playState !== 'running' || seen.has(a)) continue;
+      seen.add(a);
+      window.__transitions.push((a.effect.target.className || a.effect.target.tagName) + ':' + a.transitionProperty + '@' + Math.round(performance.now()));
+    }
+    if (performance.now() < 6000) requestAnimationFrame(frame);
+  })();
 </script>
 </head>
 <body>

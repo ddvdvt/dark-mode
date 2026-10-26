@@ -56,34 +56,32 @@
     else window.addEventListener('load', fn, { once: true });
   }
 
-  let noTransitionDepth = 0;
-  /** @type {HTMLStyleElement | null} */
-  let noTransitionEl = null;
+  let quietDepth = 0;
+  /** @type {Set<Animation> | null} animations that existed before our change */
+  let quietBefore = null;
 
   /**
-   * Switch CSS transitions off while we change colors (applying, removing or measuring the theme):
-   * pages with `transition: all` would otherwise animate every element from light to dark — a
-   * visible flicker. Returns the function that switches them back on; before doing so it flushes the
-   * style change, so the restored transitions never see a color change. Nestable.
+   * Keep CSS transitions out of our color changes (applying, removing or measuring the theme): pages
+   * with `transition: all` would otherwise animate every element from light to dark — a visible
+   * flicker. Returns the function to call after the change: it flushes styles (the browser creates the
+   * transitions our change caused) and cancels exactly those, so they end at once. Nothing is added
+   * to the page and no extra style recalculation is needed. Nestable.
    * @returns {() => void}
    */
   function transitionsOff() {
-    const html = document.documentElement;
-    if (!html) return () => {};
-    if (noTransitionDepth++ === 0) {
-      noTransitionEl = makeStyle('nt', '*,*::before,*::after{transition:none!important}');
-      html.appendChild(noTransitionEl);
-    }
+    if (typeof document.getAnimations !== 'function' || typeof CSSTransition === 'undefined') return () => {};
+    if (quietDepth++ === 0) quietBefore = new Set(document.getAnimations());
     let done = false;
     return () => {
       if (done) return;
       done = true;
-      if (--noTransitionDepth > 0) return;
-      const el = noTransitionEl;
-      noTransitionEl = null;
-      if (!el) return;
-      void (document.documentElement && document.documentElement.offsetWidth); // flush styles while transitions are off
-      el.remove();
+      if (--quietDepth > 0) return;
+      const before = quietBefore;
+      quietBefore = null;
+      const html = document.documentElement;
+      if (!before || !html) return;
+      void getComputedStyle(html).color; // style flush: transitions caused by our change are created now
+      for (const a of document.getAnimations()) if (a instanceof CSSTransition && !before.has(a)) a.cancel();
     };
   }
 
