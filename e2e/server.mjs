@@ -47,7 +47,7 @@ export async function startServers() {
       res.end(PHOTO);
     } else if (name === 'heavy.html') {
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-      res.end(heavyPage(Number(url.searchParams.get('n') || 5000), Number(url.searchParams.get('rules') || 3000)));
+      res.end(heavyPage(Number(url.searchParams.get('n') || 5000), Number(url.searchParams.get('rules') || 3000), url.searchParams.has('xo')));
     } else if (name === 'slow.html') {
       // head first, body 1.5 s later: the browser paints in between — that is when a white flash would show
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });

@@ -57,7 +57,7 @@
       /** @type {WeakMap<Element, { fg: string, light: boolean }>} text color seen per element */
       this.seen = new WeakMap();
       this.verify = [];
-      this.stat = { sheets: 0, rules: 0, decls: 0, sheetMs: 0, elements: 0, tagged: 0, fallbackMs: 0, unreadable: 0 };
+      this.stat = { sheets: 0, rules: 0, decls: 0, sheetMs: 0, mutations: 0, mutationMs: 0, elements: 0, tagged: 0, fallbackMs: 0, unreadable: 0 };
       /** @type {WeakSet<Element>} */
       this.listened = new WeakSet();
       /** @type {Map<Element, number>} style rules per sheet node */
@@ -148,9 +148,7 @@
     // ---- stylesheets
 
     processAllSheets() {
-      const t = performance.now();
       for (const node of document.querySelectorAll(SHEET_SEL)) if (!dom.isOurs(node)) this.processSheetNode(node);
-      this.stat.sheetMs += performance.now() - t;
     }
 
     /** @param {Element} node a <style> or <link rel=stylesheet> */
@@ -245,6 +243,7 @@
     onMutations(recs) {
       if (!this.base) return;
       const t = performance.now();
+      this.stat.mutations += recs.length;
       /** @type {Set<Element>} */
       const sheets = new Set();
       for (const r of recs) {
@@ -279,7 +278,7 @@
         if (o) o.sig = '';
         this.processSheetNode(s);
       }
-      this.stat.sheetMs += performance.now() - t;
+      this.stat.mutationMs += performance.now() - t;
       // Small batches (a component, a few inline styles) are fixed before the next paint; big ones in idle time.
       if (this.single.length && this.single.length <= LIMITS.syncFallback && !this.scanRoots.length && !this.walker) this.runFallback(() => 10);
       if (this.single.length || this.scanRoots.length) this.schedule();
@@ -419,7 +418,7 @@
 
     stats() {
       const r = (x) => Math.round(x * 10) / 10;
-      return { ...this.stat, sheetMs: r(this.stat.sheetMs), fallbackMs: r(this.stat.fallbackMs), startMs: r(this.startMs || 0), classes: this.classes.size, fullScan: this.fullScan };
+      return { ...this.stat, sheetMs: r(this.stat.sheetMs), mutationMs: r(this.stat.mutationMs), fallbackMs: r(this.stat.fallbackMs), startMs: r(this.startMs || 0), classes: this.classes.size, fullScan: this.fullScan };
     }
 
     stop() {

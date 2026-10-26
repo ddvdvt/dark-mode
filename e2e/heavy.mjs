@@ -1,7 +1,8 @@
 // Generated heavy page for the perf test: `n` elements in nested cards, `rules` CSS rules
 // (colors, gradients, variables, media queries), inline styles, and a script that keeps adding
-// content after load (like an infinite feed).
-export function heavyPage(n = 5000, rules = 3000) {
+// content after load (like an infinite feed). crossOrigin adds an unreadable stylesheet, which makes
+// the smart engine scan every element (its worst case).
+export function heavyPage(n = 5000, rules = 3000, crossOrigin = false) {
   const css = [];
   css.push(':root{--bg:#ffffff;--fg:#1d1d1f;--line:#e5e5ea;--accent:#0071e3}');
   css.push('body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.4 system-ui,sans-serif}');
@@ -20,7 +21,7 @@ export function heavyPage(n = 5000, rules = 3000) {
     const inline = i % 25 === 0 ? ' style="background:#fafafa;color:#333"' : '';
     items.push(`<div class="card c${c}"${inline}><h3 class="t">Card ${i}</h3><p>Some text <a href="#${i}">link ${i}</a></p><span class="badge">tag</span></div>`);
   }
-  return `<!doctype html><html><head><meta charset="utf-8"><title>Heavy page</title><style>${css.join('\n')}</style></head>
+  return `<!doctype html><html><head><meta charset="utf-8"><title>Heavy page</title>${crossOrigin ? '<link rel="stylesheet" href="/x-origin/remote.css">' : ''}<style>${css.join('\n')}</style></head>
 <body><h1>Heavy page: ${n} elements, ${rules} rules</h1><div id="feed">${items.join('')}</div>
 <script>
   // after load, append 1000 more elements in 10 batches (infinite scroll)

@@ -90,7 +90,7 @@
 
   /**
    * @typedef {object} Ctx
-   * @property {Map<string, Set<Role>>} varRoles   how each custom property is used (filled by collectVarUsage)
+   * @property {Map<string, Set<Role>>} varRoles   how each custom property is used (filled while reading)
    * @property {Map<string, Set<string>>} varAliases --a: var(--b) → b is used like a
    * @property {number} rules     style rules visited
    * @property {number} decls     declarations rewritten
@@ -127,40 +127,6 @@
     }
   }
 
-  /**
-   * Pass 1: learn how custom properties are used (as backgrounds, text colors, borders…).
-   * @param {ArrayLike<any>} rules @param {Ctx} ctx
-   */
-  function collectVarUsage(rules, ctx) {
-    for (let i = 0; i < rules.length; i++) {
-      const rule = rules[i];
-      const st = rule.style;
-      if (st && rule.constructor.name !== 'CSSKeyframeRule') {
-        for (let j = 0; j < st.length; j++) {
-          const p = st[j];
-          if (isCustom(p)) {
-            const v = st.getPropertyValue(p);
-            if (v.indexOf('var(') >= 0) {
-              for (const m of v.matchAll(VAR_RE)) {
-                let set = ctx.varAliases.get(m[1]);
-                if (!set) ctx.varAliases.set(m[1], (set = new Set()));
-                set.add(p);
-              }
-            }
-            continue;
-          }
-          const role = PROP_ROLE[p];
-          if (!role) continue;
-          let v = st.getPropertyValue(p);
-          if (!v) for (const sh of SHORTHANDS[p] || []) if ((v = st.getPropertyValue(sh))) break;
-          if (v) noteVars(ctx, v, role);
-        }
-      }
-      if (rule.styleSheet) collectVarUsage(rulesOf(rule.styleSheet, ctx), ctx);
-      else if (rule.cssRules && rule.cssRules.length) collectVarUsage(rule.cssRules, ctx);
-    }
-  }
-
   /** Role of a custom property from its usage; aliases inherit roles of the variables using them. */
   function varRole(name, ctx) {
     const set = varRoleSet(name, ctx, 0);
@@ -174,33 +140,56 @@
     return set;
   }
 
-  /** Declarations of one style block → "prop:value;" text with dark colors (only changed ones). */
-  function transformDecls(st, ctx) {
-    let body = '';
-    for (let j = 0; j < st.length; j++) {
-      const p = st[j];
-      let role;
-      if (isCustom(p)) role = varRole(p, ctx);
-      else if (!(role = PROP_ROLE[p])) continue;
-      const v = st.getPropertyValue(p);
-      if (!v) continue;
-      const t = transformValue(v, role);
-      if (t === v) continue;
-      ctx.decls++;
-      body += p + ':' + t + (st.getPropertyPriority(p) ? ' !important;' : ';');
-    }
-    return body;
-  }
+  /*
+   * The sheet is read ONCE (CSSOM access is the expensive part) into a small plan that keeps only the
+   * color declarations; custom-property usage is collected on the way. The plan is then emitted as CSS
+   * text, when the roles of all variables of the sheet are known.
+   *
+   * Plan node: [kind, a, b, c]
+   *   'S' style rule      a = selector, b = decls, c = nested plan | null
+   *   'D' nested decls    b = decls
+   *   'G' group at-rule   a = rule (for the prelude), c = inner plan
+   *   'I' @import         a = media text, c = inner plan
+   *   'K' keyframes       a = ready CSS text
+   * decls: flat array [prop, value, role | null (custom property), style declaration, ...]
+   */
 
-  /** Text before the block of an at-rule, e.g. "@container card (min-width: 400px)". */
-  function prelude(rule) {
-    const t = String(rule.cssText || '');
-    const i = t.indexOf('{');
-    return i > 0 ? t.slice(0, i).trim() : '';
+  /** @param {any} st CSSStyleDeclaration @param {Ctx} ctx @returns {any[]} */
+  function readDecls(st, ctx) {
+    const out = [];
+    for (let j = 0, n = st.length; j < n; j++) {
+      const p = st[j];
+      if (isCustom(p)) {
+        const v = st.getPropertyValue(p);
+        if (!v) continue;
+        if (v.indexOf('var(') >= 0) {
+          for (const m of v.matchAll(VAR_RE)) {
+            let set = ctx.varAliases.get(m[1]);
+            if (!set) ctx.varAliases.set(m[1], (set = new Set()));
+            set.add(p);
+          }
+        }
+        out.push(p, v, null, st);
+        continue;
+      }
+      const role = PROP_ROLE[p];
+      if (!role) continue;
+      let v = st.getPropertyValue(p);
+      if (!v) {
+        // written through a shorthand with var(): only learn how the variable is used
+        const shs = SHORTHANDS[p];
+        if (shs) for (let k = 0; k < shs.length; k++) if ((v = st.getPropertyValue(shs[k]))) break;
+        if (v) noteVars(ctx, v, role);
+        continue;
+      }
+      noteVars(ctx, v, role);
+      out.push(p, v, role, st);
+    }
+    return out;
   }
 
   /** @param {any} kf CSSKeyframesRule */
-  function transformKeyframes(kf, ctx) {
+  function keyframesText(kf) {
     let changed = false;
     let out = '';
     const list = kf.cssRules || [];
@@ -221,51 +210,94 @@
     return changed ? '@keyframes ' + kf.name + '{' + out + '}' : '';
   }
 
-  /**
-   * Pass 2: build the override CSS text for a list of rules.
-   * @param {ArrayLike<any>} rules @param {Ctx} ctx @returns {string}
-   */
-  function transformRules(rules, ctx) {
-    let out = '';
-    for (let i = 0; i < rules.length; i++) {
+  const GROUPS = new Set(['CSSMediaRule', 'CSSSupportsRule', 'CSSLayerBlockRule', 'CSSContainerRule', 'CSSScopeRule', 'CSSDocumentRule']);
+
+  /** @param {ArrayLike<any>} rules @param {Ctx} ctx @returns {any[]} */
+  function readRules(rules, ctx) {
+    const plan = [];
+    for (let i = 0, n = rules.length; i < n; i++) {
       const rule = rules[i];
       const kind = rule.constructor.name;
       if (kind === 'CSSStyleRule') {
         if (++ctx.rules > ctx.maxRules) throw new TooBig('too many rules');
-        const body = transformDecls(rule.style, ctx);
-        const nested = rule.cssRules && rule.cssRules.length ? transformRules(rule.cssRules, ctx) : '';
-        if (body || nested) out += rule.selectorText + '{' + body + nested + '}';
+        const decls = readDecls(rule.style, ctx);
+        const sub = rule.cssRules;
+        const nested = sub && sub.length ? readRules(sub, ctx) : null;
+        if (decls.length || (nested && nested.length)) plan.push(['S', rule.selectorText, decls, nested]);
       } else if (kind === 'CSSNestedDeclarations') {
-        out += transformDecls(rule.style, ctx);
+        const decls = readDecls(rule.style, ctx);
+        if (decls.length) plan.push(['D', null, decls, null]);
       } else if (kind === 'CSSImportRule') {
-        const inner = transformRules(rulesOf(rule.styleSheet, ctx), ctx);
-        const media = rule.media && rule.media.mediaText;
-        if (inner) out += media ? '@media ' + media + '{' + inner + '}' : inner;
+        const inner = readRules(rulesOf(rule.styleSheet, ctx), ctx);
+        if (inner.length) plan.push(['I', rule.media && rule.media.mediaText, null, inner]);
       } else if (kind === 'CSSKeyframesRule') {
-        out += transformKeyframes(rule, ctx);
-      } else if (kind === 'CSSMediaRule' || kind === 'CSSSupportsRule' || kind === 'CSSLayerBlockRule' || kind === 'CSSContainerRule' || kind === 'CSSScopeRule' || kind === 'CSSDocumentRule') {
-        const inner = transformRules(rule.cssRules, ctx);
-        if (!inner) continue;
-        let head;
-        if (kind === 'CSSMediaRule') head = '@media ' + rule.media.mediaText;
-        else if (kind === 'CSSSupportsRule') head = '@supports ' + rule.conditionText;
-        else if (kind === 'CSSLayerBlockRule') head = rule.name ? '@layer ' + rule.name : '@layer';
-        else head = prelude(rule);
-        if (head) out += head + '{' + inner + '}';
+        const text = keyframesText(rule);
+        if (text) plan.push(['K', text, null, null]);
+      } else if (GROUPS.has(kind)) {
+        const inner = readRules(rule.cssRules, ctx);
+        if (inner.length) plan.push(['G', rule, null, inner]);
       }
       // @font-face, @page, @property, @namespace, @starting-style…: no colors to theme.
+    }
+    return plan;
+  }
+
+  /** Text before the block of an at-rule, e.g. "@container card (min-width: 400px)". */
+  function prelude(rule) {
+    const kind = rule.constructor.name;
+    if (kind === 'CSSMediaRule') return '@media ' + rule.media.mediaText;
+    if (kind === 'CSSSupportsRule') return '@supports ' + rule.conditionText;
+    if (kind === 'CSSLayerBlockRule') return rule.name ? '@layer ' + rule.name : '@layer';
+    const t = String(rule.cssText || '');
+    const i = t.indexOf('{');
+    return i > 0 ? t.slice(0, i).trim() : '';
+  }
+
+  /** @param {any[]} d decls @param {Ctx} ctx */
+  function emitDecls(d, ctx) {
+    let body = '';
+    for (let i = 0; i < d.length; i += 4) {
+      const p = d[i], v = d[i + 1];
+      const role = d[i + 2] || varRole(p, ctx);
+      const t = transformValue(v, role);
+      if (t === v) continue;
+      ctx.decls++;
+      body += p + ':' + t + (d[i + 3].getPropertyPriority(p) ? ' !important;' : ';');
+    }
+    return body;
+  }
+
+  /** @param {any[]} plan @param {Ctx} ctx @returns {string} */
+  function emit(plan, ctx) {
+    let out = '';
+    for (let i = 0; i < plan.length; i++) {
+      const [k, a, b, c] = plan[i];
+      if (k === 'S') {
+        const body = emitDecls(b, ctx);
+        const nested = c ? emit(c, ctx) : '';
+        if (body || nested) out += a + '{' + body + nested + '}';
+      } else if (k === 'D') out += emitDecls(b, ctx);
+      else if (k === 'K') out += a;
+      else {
+        const inner = emit(c, ctx);
+        if (!inner) continue;
+        if (k === 'I') out += a ? '@media ' + a + '{' + inner + '}' : inner;
+        else {
+          const head = prelude(a);
+          if (head) out += head + '{' + inner + '}';
+        }
+      }
     }
     return out;
   }
 
   /**
-   * Whole pipeline for one sheet's rule list.
+   * Override CSS text for one sheet's rule list: one read pass over the CSSOM, then emit.
    * @param {ArrayLike<any>} rules @param {Ctx} ctx @returns {string}
    */
   function transformSheet(rules, ctx) {
-    collectVarUsage(rules, ctx);
-    return transformRules(rules, ctx);
+    return emit(readRules(rules, ctx), ctx);
   }
 
-  NS.css = { PROP_ROLE, SHORTHANDS, transformValue, transformRules, transformSheet, collectVarUsage, createContext, roleOf, varRole, TooBig, _valueCache: valueCache };
+  NS.css = { PROP_ROLE, SHORTHANDS, transformValue, transformSheet, createContext, roleOf, varRole, TooBig, _valueCache: valueCache };
 })(globalThis);
