@@ -88,7 +88,14 @@ function setRule(s, host, rule) {
 
 function render() {
   renderGeneral();
+  // the site table is rebuilt: keep keyboard focus on the same control
+  const active = document.activeElement;
+  const label = active && $('sites').contains(active) ? active.getAttribute('aria-label') : null;
   renderSites();
+  if (label) {
+    const again = [...$('sites').querySelectorAll('[aria-label]')].find((el) => el.getAttribute('aria-label') === label);
+    (again || $('addHost')).focus();
+  }
 }
 
 /** @param {(s: any) => any} fn */

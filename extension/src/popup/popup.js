@@ -5,6 +5,9 @@ import { S, loadSettings, updateSettings, onSettingsChange } from '../shared/sto
 
 const $ = (id) => /** @type {any} */ (document.getElementById(id));
 
+/** Button text for each site action. */
+const ACTION_LABEL = { turnOff: () => t('siteTurnOff'), turnOn: () => t('siteTurnOn'), forceOn: () => t('siteForceOn') };
+
 /** @type {any} */
 let settings = null;
 /** @type {number | null} */
@@ -99,7 +102,7 @@ function render() {
   $('status').textContent = text;
   $('siteActions').classList.toggle('hidden', !action);
   if (action) {
-    toggle.textContent = t(action === 'turnOff' ? 'siteTurnOff' : action === 'forceOn' ? 'siteForceOn' : 'siteTurnOn');
+    toggle.textContent = ACTION_LABEL[action]();
     toggle.classList.toggle('secondary', action === 'turnOff');
   }
   const showEngine = st === 'on' || st === 'site-off' || st === 'already-dark';

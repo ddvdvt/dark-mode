@@ -24,7 +24,7 @@
     "message": "Checking the page…"
   },
   "statusOn": {
-    "message": "Dark theme is on · $1 engine."
+    "message": "Dark theme is on, engine: $1."
   },
   "statusForcedFilter": {
     "message": "The page is very large, so the fast engine is used."

@@ -18,7 +18,7 @@ const M = {
   globalSwitch: ['Включить или выключить везде', 'Turn on or off everywhere', 'Барлық жерде қосу не өшіру'],
 
   statusLoading: ['Проверяю страницу…', 'Checking the page…', 'Бет тексерілуде…'],
-  statusOn: ['Тёмная тема включена · $1 режим.', 'Dark theme is on · $1 engine.', 'Қараңғы тақырып қосулы · $1 режим.'],
+  statusOn: ['Тёмная тема включена, режим: $1.', 'Dark theme is on, engine: $1.', 'Қараңғы тақырып қосулы, режим: $1.'],
   statusForcedFilter: ['Страница очень большая, поэтому работает быстрый режим.', 'The page is very large, so the fast engine is used.', 'Бет өте үлкен, сондықтан жылдам режим қолданылады.'],
   statusAppliedIn: ['Применена за $1 мс.', 'Applied in $1 ms.', '$1 мс ішінде қолданылды.'],
   statusAlreadyDark: ['Сайт уже тёмный — оставили как есть.', 'This site is already dark, so it is left as is.', 'Сайт онсыз да қараңғы — өзгертілмеді.'],
