@@ -63,7 +63,7 @@ test('"other extensions" links go to the brand site, no placeholders left', () =
 
 test('manifest: CWS fields', () => {
   assert.equal(manifest.manifest_version, 3);
-  assert.equal(manifest.version, '1.0.0');
+  assert.equal(manifest.version, '1.1.0');
   assert.equal(manifest.homepage_url, BASE, 'homepage_url must equal BASE from lib/brand.js');
   assert.equal(manifest.default_locale, 'ru');
   assert.equal(manifest.content_security_policy, undefined, 'default CSP');
