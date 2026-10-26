@@ -46,7 +46,7 @@
 
 ## Страницы на сайте автора
 
-После установки открывается вкладка `BASE/welcome/dark-mode.html`, после удаления — `BASE/bye/dark-mode.html`, ссылка «Другие расширения автора» ведёт на `BASE/#dark-mode`, а `homepage_url` — на `BASE`. Адрес `BASE` задан в одном месте: [`extension/lib/brand.js`](extension/lib/brand.js) (сейчас там заглушка `https://USER.github.io/REPO/`). После замены поменяйте и `homepage_url` в `extension/manifest.json` — `npm test` проверяет, что они совпадают.
+После установки открывается вкладка `BASE/welcome/dark-mode.html`, после удаления — `BASE/bye/dark-mode.html`, ссылка «Другие расширения автора» ведёт на `BASE/#dark-mode`, а `homepage_url` — на `BASE`. Адрес `BASE` задан в одном месте: [`extension/lib/brand.js`](extension/lib/brand.js) (сейчас `https://ddvdvt.github.io/`). После замены поменяйте и `homepage_url` в `extension/manifest.json` — `npm test` проверяет, что они совпадают.
 
 ## Производительность
 
